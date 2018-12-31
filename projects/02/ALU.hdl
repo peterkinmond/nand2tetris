@@ -42,5 +42,52 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // Basic idea is to use Mux16 chips for all
+    // decision-making from the input flags. Usually
+    // need to "pre-compute" different options and then
+    // use Mux to choose from between those options.
+
+    // ***** Pre-setting x input *****
+    // if (zx == 1) set x = 0        // 16-bit constant
+    Mux16 (a=x, b=false, sel=zx, out=muxzx);
+    
+    // if (nx == 1) set x = !x       // bitwise not
+    Not16 (in=muxzx, out=notx);
+    Mux16 (a=muxzx, b=notx, sel=nx, out=muxnx);
+
+    // ***** Pre-setting y input *****
+    // if (zy == 1) set y = 0        // 16-bit constant
+    Mux16 (a=y, b=false, sel=zy, out=muxzy);
+
+    // if (ny == 1) set y = !y       // bitwise not
+    Not16 (in=muxzy, out=noty);
+    Mux16 (a=muxzy, b=noty, sel=ny, out=muxny);
+
+    // ***** Function *****
+    // if (f == 1)  set out = x + y  // integer 2's complement addition
+    // if (f == 0)  set out = x & y  // bitwise and
+    Add16 (a=muxnx, b=muxny, out=addxy);
+    And16 (a=muxnx, b=muxny, out=andxy);
+    Mux16 (a=andxy, b=addxy, sel=f, out=muxf);
+
+    // ***** Post-setting output *****
+    // if (no == 1) set out = !out   // bitwise not
+    Not16 (in=muxf, out=notout);
+    Mux16 (a=muxf, b=notout, sel=no, out=out, out[0..7]=outhalf1, out[8..15]=outhalf2, out[15]=outlast);
+
+    // ***** Other output flags *****
+    // if (out == 0) set zr = 1
+    // To check if a 16-bit value is 0, or all the bits
+    // and make sure that the result is 0. Using 2 Or8Way gates
+    // since we already built that gate but could create an 
+    // Or16Way to replace the 3 Or gates used.
+    Or8Way (in=outhalf1, out=orhalf1);
+    Or8Way (in=outhalf2, out=orhalf2);
+    Or (a=orhalf1, b=orhalf2, out=orfinal);
+    Mux (a=true, b=false, sel=orfinal, out=zr);
+    
+    // if (out < 0) set ng = 1
+    // The output's most significant bit determines whether it's
+    // negative or not so use that here to determine value for ng
+    Mux (a=false, b=true, sel=outlast, out=ng);
 }
