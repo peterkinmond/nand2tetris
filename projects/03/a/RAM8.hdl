@@ -15,5 +15,22 @@ CHIP RAM8 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Connect the input to all registers and then use
+    // a DMux chip to power the correct load bit so that only
+    // that register will have the input loaded into it. Use
+    // a Mux chip to select which register will power the output.
+    DMux8Way(in=load, sel=address, 
+      a=reg1load, b=reg2load, c=reg3load, d=reg4load, 
+      e=reg5load, f=reg6load, g=reg7load, h=reg8load); 
+    Register (in=in, load=reg1load, out=reg1);
+    Register (in=in, load=reg2load, out=reg2);
+    Register (in=in, load=reg3load, out=reg3);
+    Register (in=in, load=reg4load, out=reg4);
+    Register (in=in, load=reg5load, out=reg5);
+    Register (in=in, load=reg6load, out=reg6);
+    Register (in=in, load=reg7load, out=reg7);
+    Register (in=in, load=reg8load, out=reg8);
+    Mux8Way16(
+      a=reg1, b=reg2, c=reg3, d=reg4, 
+      e=reg5, f=reg6, g=reg7, h=reg8, sel=address, out=out); 
 }
