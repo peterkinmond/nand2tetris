@@ -15,5 +15,14 @@ CHIP RAM16K {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Same DMux/Mux strategy as other RAM chips, but with 4way instead
+    // of 8way
+    DMux4Way (in=load, sel=address[0..1], 
+      a=ram1load, b=ram2load, c=ram3load, d=ram4load);
+    RAM4K (in=in, load=ram1load, address=address[2..13], out=ram1);
+    RAM4K (in=in, load=ram2load, address=address[2..13], out=ram2);
+    RAM4K (in=in, load=ram3load, address=address[2..13], out=ram3);
+    RAM4K (in=in, load=ram4load, address=address[2..13], out=ram4);
+    Mux4Way16 (
+      a=ram1, b=ram2, c=ram3, d=ram4, sel=address[0..1], out=out);
 }
