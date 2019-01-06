@@ -16,5 +16,16 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Building this chip in the reverse order of the rules above.
+    // "reset" takes priority so it needs to be the final step before the 
+    // output, while the final rule needs to be the first chip used so 
+    // that it applies first and can be overridden by the other rules.
+    // I'm using a true value for the register's load input which feels... weird since
+    // it's not loading conditionally on anything but in this case I think
+    // that's the correct behaviour.
+    Inc16(in=outtemp, out=incout);
+    Mux16(a=outtemp, b=incout, sel=inc, out=mux1out);
+    Mux16(a=mux1out, b=in, sel=load, out=mux2out);
+    Mux16(a=mux2out, b=false, sel=reset, out=mux3out);
+    Register(in=mux3out, load=true, out=outtemp, out=out);
 }
