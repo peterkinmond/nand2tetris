@@ -23,13 +23,13 @@
 
 // Real code
   //  n = R0
-  @0
+  @R0
   D=M
   @n
   M=D
 
   //  m = R1
-  @1
+  @R1
   D=M
   @m
   M=D
@@ -71,7 +71,7 @@
   //  R2 = sum
   @sum
   D=M
-  @2
+  @R2
   M=D
 
 (END)
