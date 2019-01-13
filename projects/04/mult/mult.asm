@@ -9,28 +9,38 @@
 // Put your code here.
 
 // Pseudo-code
+//  if R0 == 0 goto STOP (since product will be 0)
 //  n = R0
+//  if R1 == 0 goto STOP (since product will be 0)
 //  m = R1
 //  i = 1
-//  sum = 0
+//  product = 0
 // LOOP:
 //  if i > n goto STOP
-//    sum = sum + m
+//    product = product + m
 //    i = i + 1
 //    goto LOOP
 // STOP:
-//  R2 = sum
+//  R2 = product
 
 // Real code
-  //  n = R0
+  // if R0 == 0 goto STOP
   @R0
   D=M
+  @STOP
+  D;JEQ
+
+  //  n = R0
   @n
   M=D
 
-  //  m = R1
+  // if R1 == 0 goto STOP
   @R1
   D=M
+  @STOP
+  D;JEQ
+
+  //  m = R1
   @m
   M=D
 
@@ -38,8 +48,8 @@
   @i
   M=1
 
-  //  sum = 0
-  @sum
+  //  product = 0
+  @product
   M=0
 
 // LOOP:
@@ -52,10 +62,10 @@
   @STOP
   D;JGT
 
-  //    sum = sum + m
+  //    product = product + m
   @m
   D=M
-  @sum
+  @product
   M=D+M
 
   //    i = i + 1
@@ -68,8 +78,8 @@
 
 // STOP:
 (STOP)
-  //  R2 = sum
-  @sum
+  //  R2 = product
+  @product
   D=M
   @R2
   M=D
