@@ -27,5 +27,29 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // For input, figure out loading logic based on address[14]
+    // and address[13], which have a unique combo for IDing
+    // RAM addresses vs Screen addresses (vs others).
+    // Use a couple of Mux16 chips to figure out which area of 
+    // memory should provide the output.
+
+    // RAM16K input: load and Not addr[14], to only load 0-16383
+    Not(in=address[14], out=notaddr14);
+    And(a=load, b=notaddr14, out=ram16load);
+    // Exclude first bit of address since ram16k takes 14 bits
+    RAM16K(in=in, load=ram16load, address=address[0..13], out=ram16out);
+
+    // Screen input: load and addr[14] and Not addr[13], to only load 16384-24575
+    And(a=load, b=address[14], out=andloadaddr14);
+    Not(in=address[13], out=notaddr13);
+    And(a=andloadaddr14, b=notaddr13, out=screenload);
+    // Exclude first 2 bits since screen takes 13 bits
+    Screen(in=in, load=screenload, address=address[0..12], out=screenout);
+    
+    // Keyboard
+    Keyboard(out=kbdout);
+
+    // Output
+    Mux16(a=screenout, b=kbdout, sel=address[13], out=muxout);
+    Mux16(a=ram16out, b=muxout, sel=address[14], out=out);
 }
