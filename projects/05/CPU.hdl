@@ -39,5 +39,53 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    // Widely-used gates
+    Not(in=instruction[15], out=ainstruction);
+    Not(in=ainstruction, out=cinstruction);
+
+    // The sel bit here is determined by whether the instruction is an A-instruction or C-instruction
+    // because for C-instructions we don't need to load them into the Mux since all the relevant
+    // bits of the C-instruction get loaded into the various CPU chips as control bits. For an
+    // A-instruction, however, we want to load the entire thing into the Mux since we need all
+    // bits to figure out the value.
+    Mux16(a=aluout, b=instruction, sel=ainstruction, out=mux1out);
+
+    // Logic for A-register: A-instruction OR (C-instruction AND A register bit set)
+    And(a=cinstruction, b=instruction[5], out=aregand);
+    Or(a=aregand, b=ainstruction, out=aregload);
+    ARegister(in=mux1out, load=aregload, out=aregout, out[0..14]=addressM);
+
+
+    // The ALU's "a" bit is used here to distinguish A/M register
+    And(a=cinstruction, b=instruction[12], out=mux2sel);
+    Mux16(a=aregout, b=inM, sel=mux2sel, out=mux2out);
+
+    // Logic for D-register: C-instruction AND D register bit set)
+    And(a=cinstruction, b=instruction[4], out=dregload);
+    DRegister(in=aluout, load=dregload, out=dregout);
+
+    // ALU has a bunch of control bits from c-instruction
+    ALU(x=dregout, y=mux2out, zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], no=instruction[6], out=aluout, out=outM, zr=zrout, ng=ngout);
+
+    // writeM is a combination of C-instruction and instruction[3] (which sets the M register)
+    And(a=cinstruction, b=instruction[3], out=writeM);
+
+    // PC: this logic is pretty complex (or at least involves many chips) - try to simplify it.
+    // Jump logic:
+    // ((zr AND instruction[1]) OR 
+    //   (ng AND instruction[2]) OR 
+    //   (!zr AND !ng AND instruction[0]))
+    // AND C-instruction
+    And(a=zrout, b=instruction[1], out=andzero);
+    And(a=ngout, b=instruction[2], out=andneg);
+    Not(in=zrout, out=notzrout);
+    Not(in=ngout, out=notngout);
+    And(a=notzrout, b=notngout, out=posout);
+    And(a=posout, b=instruction[0], out=andpos);
+    Or(a=andzero, b=andneg, out=or1);
+    Or(a=or1, b=andpos, out=jumpset);
+    And(a=jumpset, b=cinstruction, out=loadout);
+    PC(in=aregout, load=loadout, inc=true, reset=reset, out[0..14]=pc);
 }
