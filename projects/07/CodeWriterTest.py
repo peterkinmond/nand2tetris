@@ -1,0 +1,216 @@
+import unittest
+import colour_runner
+import CodeWriter
+
+class TestCodeWriter(unittest.TestCase):
+
+    def test_push_constant(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'constant', 10)
+        expected = [
+            '// push constant 10',
+            '@10', # *SP = i
+            'D=A',
+            '@SP',
+            'A=M',
+            'M=D',
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_local(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'local', 1)
+        expected = [
+            '// pop local 1',
+            '@LCL', # addr = LCL + i
+            'D=M',
+            '@1',
+            'D=D+A', # D = LCL + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP',
+            'A=M', # *SP, M is now value to pop
+            'D=M',
+            '@R13',
+            'M=A',
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_argument(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'argument', 2)
+        expected = [
+            '// pop argument 2',
+            '@ARG', # addr = ARG + i
+            'D=M',
+            '@2',
+            'D=D+A', # D = ARG + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP',
+            'A=M', # *SP, M is now value to pop
+            'D=M',
+            '@R13',
+            'M=A',
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_this(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'this', 3)
+        expected = [
+            '// pop this 3',
+            '@THIS', # addr = segment + i
+            'D=M',
+            '@3',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP',
+            'A=M', # *SP, M is now value to pop
+            'D=M',
+            '@R13',
+            'M=A',
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_that(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'that', 4)
+        expected = [
+            '// pop that 4',
+            '@THAT', # addr = segment + i
+            'D=M',
+            '@4',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP',
+            'A=M', # *SP, M is now value to pop
+            'D=M',
+            '@R13',
+            'M=A',
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+    # There's no pop for constant
+
+    # TODO: test pop static
+    def test_pop_static(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'static', 5)
+        expected = [
+            '// pop static 5',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@test1.5', # var = D
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+
+    def test_pop_pointer_0(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'pointer', 0)
+        expected = [
+            '// pop pointer 0',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@THIS', # THIS = D
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_pointer_1(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'pointer', 1)
+        expected = [
+            '// pop pointer 1',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@THAT', # THAT = D
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_pop_temp(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_pop_command('pop', 'temp', 4)
+        expected = [
+            '// pop temp 4',
+            '@5', # addr = 5 + i
+            'D=M',
+            '@4',
+            'D=D+A', # D = 5 + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP',
+            'A=M', # *SP, M is now value to pop
+            'D=M',
+            '@R13',
+            'M=A',
+            'M=D'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+#if __name__ == '__main__':
+#    unittest.main()
+
+#suite = unittest.TestLoader().loadTestsFromTestCase(TestCodeWriter)
+#unittest.TextTestRunner(verbosity=1).run(suite)
