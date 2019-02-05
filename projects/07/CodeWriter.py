@@ -14,17 +14,17 @@ class CodeWriter:
         pass
 
     def convert_push_command(self, command, segment, index):
-        expected = [
-            "// {} {} {}".format(command, segment, index),
-            '@' + str(index),
-            'D=A',
-            '@SP',
-            'A=M',
-            'M=D',
-            '@SP',
-            'M=M+1'
-        ]
-        return expected
+        if segment == "constant":
+            return \
+                ["// {} {} {}".format(command, segment, index)] + \
+                self.star_sp_equals_index(index) + \
+                self.increment_sp()
+
+        return \
+            ["// {} {} {}".format(command, segment, index)] + \
+            self.addr_equals_segment_plus_i(segment, index) + \
+            self.star_sp_equals_star_addr() + \
+            self.increment_sp()
 
     def convert_pop_command(self, command, segment, index):
         if segment == "pointer" or segment == "static":
@@ -38,31 +38,6 @@ class CodeWriter:
             self.addr_equals_segment_plus_i(segment, index) + \
             self.decrement_sp() + \
             self.star_addr_equals_star_sp()
-
-
-
-#        expected = [
-#            "// {} {} {}".format(command, segment, index),
-#
-#            '@' + self.get_segment_type(segment), # D = segment + i
-#            'D=M',
-#            '@' + str(index),
-#            'D=D+A',
-#            '@R13', # addr = D, store for later
-#            'M=D',
-#
-#            '@SP', # SP--
-#            'M=M-1',
-#
-#            '@SP', # D = *SP
-#            'A=M',
-#            'D=M',
-#
-#            '@R13', # *addr = D
-#            'M=A',
-#            'M=D'
-#        ]
-#        return expected
 
     def segment_equals_star_sp(self, segment, index):
         return [
@@ -85,10 +60,26 @@ class CodeWriter:
             'M=D',
         ]
 
+    def increment_sp(self):
+        return [
+            '@SP', # SP++
+            'M=M+1',
+        ]
+
     def decrement_sp(self):
         return [
             '@SP', # SP--
             'M=M-1',
+        ]
+
+    def star_sp_equals_star_addr(self):
+        return [
+            '@R13', # D = *addr
+            'D=M',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
         ]
 
     def star_addr_equals_star_sp(self):
@@ -102,8 +93,14 @@ class CodeWriter:
             'M=D',
         ]
 
-    def close(self):
-        self.output_file.close()
+    def star_sp_equals_index(self, index):
+        return [
+            '@' + str(index), # *SP = i
+            'D=A',
+            '@SP',
+            'A=M',
+            'M=D',
+        ]
 
     def get_segment_type(self, segment, index):
         if (segment == 'pointer'):
@@ -126,4 +123,6 @@ class CodeWriter:
         vm_filename = self.output_filepath.split("/")[-1].split(".")[0]
         return "{}.{}".format(vm_filename, index)
 
+    def close(self):
+        self.output_file.close()
 

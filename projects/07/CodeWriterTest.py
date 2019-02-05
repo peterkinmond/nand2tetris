@@ -2,7 +2,107 @@ import unittest
 import colour_runner
 import CodeWriter
 
-class TestCodeWriter(unittest.TestCase):
+class TestCodeWriterPush(unittest.TestCase):
+
+    def test_push_local(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'local', 1)
+        expected = [
+            '// push local 1',
+
+            '@LCL', # addr = segment + i
+            'D=M',
+            '@1',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@R13', # *SP = *addr
+            'D=M',
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_push_argument(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'argument', 2)
+        expected = [
+            '// push argument 2',
+
+            '@ARG', # addr = segment + i
+            'D=M',
+            '@2',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@R13', # *SP = *addr
+            'D=M',
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_push_this(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'this', 3)
+        expected = [
+            '// push this 3',
+
+            '@THIS', # addr = segment + i
+            'D=M',
+            '@3',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@R13', # *SP = *addr
+            'D=M',
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_push_that(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'that', 4)
+        expected = [
+            '// push that 4',
+
+            '@THAT', # addr = segment + i
+            'D=M',
+            '@4',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@R13', # *SP = *addr
+            'D=M',
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
 
     def test_push_constant(self):
         cw = CodeWriter.CodeWriter('test1.test')
@@ -20,6 +120,39 @@ class TestCodeWriter(unittest.TestCase):
         cw.close()
         self.assertEqual(result, expected)
 
+
+    # TODO: test push static
+    # TODO: test push pointer 0/1
+
+    def test_push_temp(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'temp', 4)
+        expected = [
+            '// push temp 4',
+
+            '@5', # addr = segment + i
+            'D=M',
+            '@4',
+            'D=D+A', # D = segment + i
+            '@R13',
+            'M=D',  # R13 = D, to store it for later
+
+            '@R13', # *SP = *addr
+            'D=M',
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+
+
+class TestCodeWriterPop(unittest.TestCase):
     def test_pop_local(self):
         cw = CodeWriter.CodeWriter('test1.test')
         result = cw.convert_pop_command('pop', 'local', 1)
