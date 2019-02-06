@@ -20,6 +20,12 @@ class CodeWriter:
                 self.star_sp_equals_index(index) + \
                 self.increment_sp()
 
+        if segment == "pointer" or segment == "static":
+            return \
+                ["// {} {} {}".format(command, segment, index)] + \
+                self.star_sp_equals_segment(segment, index) + \
+                self.increment_sp()
+
         return \
             ["// {} {} {}".format(command, segment, index)] + \
             self.addr_equals_segment_plus_i(segment, index) + \
@@ -96,8 +102,18 @@ class CodeWriter:
     def star_sp_equals_index(self, index):
         return [
             '@' + str(index), # *SP = i
-            'D=A',
+            'D=A', # Get address value, not memory value
             '@SP',
+            'A=M',
+            'M=D',
+        ]
+
+    def star_sp_equals_segment(self, segment, index):
+        return [
+            '@' + self.get_segment_type(segment, index), # D = segment
+            'D=M',
+
+            '@SP', # *SP = D
             'A=M',
             'M=D',
         ]

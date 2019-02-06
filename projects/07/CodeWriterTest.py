@@ -109,11 +109,14 @@ class TestCodeWriterPush(unittest.TestCase):
         result = cw.convert_push_command('push', 'constant', 10)
         expected = [
             '// push constant 10',
-            '@10', # *SP = i
+
+            '@10', # D = i
             'D=A',
-            '@SP',
+
+            '@SP', # *SP = D
             'A=M',
             'M=D',
+
             '@SP', # SP++
             'M=M+1'
         ]
@@ -122,7 +125,63 @@ class TestCodeWriterPush(unittest.TestCase):
 
 
     # TODO: test push static
-    # TODO: test push pointer 0/1
+    def test_push_static(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'static', 5)
+        expected = [
+            '// push static 5',
+
+            '@test1.5', # D = var
+            'D=M',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+    def test_push_pointer_0(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'pointer', 0)
+        expected = [
+            '// push pointer 0',
+
+            '@THIS', # D = THIS
+            'D=M',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_push_pointer_1(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_push_command('push', 'pointer', 1)
+        expected = [
+            '// push pointer 1',
+
+            '@THAT', # D = THAT
+            'D=M',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
 
     def test_push_temp(self):
         cw = CodeWriter.CodeWriter('test1.test')
@@ -256,7 +315,6 @@ class TestCodeWriterPop(unittest.TestCase):
 
     # There's no pop for constant
 
-    # TODO: test pop static
     def test_pop_static(self):
         cw = CodeWriter.CodeWriter('test1.test')
         result = cw.convert_pop_command('pop', 'static', 5)
@@ -275,8 +333,6 @@ class TestCodeWriterPop(unittest.TestCase):
         ]
         cw.close()
         self.assertEqual(result, expected)
-
-
 
     def test_pop_pointer_0(self):
         cw = CodeWriter.CodeWriter('test1.test')
