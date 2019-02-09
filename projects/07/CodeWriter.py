@@ -13,23 +13,15 @@ class CodeWriter:
     def write_push_pop(self, command, segment, index):
         pass
 
-
-    def convert_add_command(self):
+    # Handle add, sub, and, or commands
+    # Since they're all the same except for operator
+    def convert_builtin_operator_command(self, command_type):
         return \
-            ['// add'] + \
+            ["// {}".format(command_type)] + \
             self.decrement_sp() + \
             self.d_equals_star_sp() + \
             self.decrement_sp() + \
-            self.star_sp_equals_star_sp_plus_d() + \
-            self.increment_sp()
-
-    def convert_sub_command(self):
-        return \
-            ['// sub'] + \
-            self.decrement_sp() + \
-            self.d_equals_star_sp() + \
-            self.decrement_sp() + \
-            self.star_sp_equals_star_sp_minus_d() + \
+            self.star_sp_equals_star_sp_operator_d(command_type) + \
             self.increment_sp()
 
     def convert_neg_command(self):
@@ -39,22 +31,22 @@ class CodeWriter:
             self.star_sp_equals_neg_star_sp() + \
             self.increment_sp()
 
-    def convert_and_command(self):
+    def convert_not_command(self):
         return \
-            ['// and'] + \
+            ['// not'] + \
             self.decrement_sp() + \
-            self.d_equals_star_sp() + \
-            self.decrement_sp() + \
-            self.star_sp_equals_star_sp_and_d() + \
+            self.star_sp_equals_not_star_sp() + \
             self.increment_sp()
 
-    def convert_or_command(self):
+    # Handle eq, gt, lt commands
+    # Since they're all the same except for jump condition
+    def convert_comparison_command(self, command_type):
         return \
-            ['// or'] + \
+            ["// {}".format(command_type)] + \
             self.decrement_sp() + \
             self.d_equals_star_sp() + \
             self.decrement_sp() + \
-            self.star_sp_equals_star_sp_or_d() + \
+            self.star_sp_equals_star_sp_command_d(command_type) + \
             self.increment_sp()
 
     def convert_push_command(self, command, segment, index):
@@ -150,6 +142,13 @@ class CodeWriter:
             'M=-M',
         ]
 
+    def star_sp_equals_not_star_sp(self):
+        return [
+            '@SP', # *SP = !*SP
+            'A=M',
+            'M=!M',
+        ]
+
     def star_sp_equals_index(self, index):
         return [
             '@' + str(index), # *SP = i
@@ -176,33 +175,54 @@ class CodeWriter:
             'D=M',
         ]
 
-    def star_sp_equals_star_sp_plus_d(self):
+    def star_sp_equals_star_sp_operator_d(self, command_type):
         return [
-            '@SP', # *SP = *SP + D
+            '@SP', # *SP = *SP - D
             'A=M',
-            'M=D+M',
+            'M=M' + self.get_operator(command_type) + 'D',
         ]
 
-    def star_sp_equals_star_sp_minus_d(self):
+    def star_sp_equals_star_sp_command_d(self, command_type):
         return [
             '@SP', # *SP = *SP - D
             'A=M',
             'M=M-D',
+            'D=M', # if M > 0
+
+            '@SETTRUE',
+            'D;' + self.get_jump_type(command_type),
+
+            '(SETFALSE)',
+            '@SP',
+            'A=M',
+            'M=0', # false
+            '@FINISH',
+            '0;JMP',
+
+            '(SETTRUE)',
+            '@SP',
+            'A=M',
+            'M=-1', # true
+            '@FINISH',
+            '0;JMP',
+
+            '(FINISH)',
         ]
 
-    def star_sp_equals_star_sp_and_d(self):
-        return [
-            '@SP', # *SP = *SP & D
-            'A=M',
-            'M=M&D',
-        ]
+    def get_operator(self, command_type):
+        return {
+            'add': '+',
+            'sub': '-',
+            'and': '&',
+            'or':  '|'
+        }[command_type]
 
-    def star_sp_equals_star_sp_or_d(self):
-        return [
-            '@SP', # *SP = *SP | D
-            'A=M',
-            'M=M|D',
-        ]
+    def get_jump_type(self, command_type):
+        return {
+            'gt': 'JGT',
+            'lt': 'JLT',
+            'eq': 'JEQ',
+        }[command_type]
 
     def get_segment_type(self, segment, index):
         if (segment == 'pointer'):
