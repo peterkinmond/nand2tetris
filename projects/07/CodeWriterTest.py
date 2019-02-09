@@ -123,8 +123,6 @@ class TestCodeWriterPush(unittest.TestCase):
         cw.close()
         self.assertEqual(result, expected)
 
-
-    # TODO: test push static
     def test_push_static(self):
         cw = CodeWriter.CodeWriter('test1.test')
         result = cw.convert_push_command('push', 'static', 5)
@@ -143,7 +141,6 @@ class TestCodeWriterPush(unittest.TestCase):
         ]
         cw.close()
         self.assertEqual(result, expected)
-
 
     def test_push_pointer_0(self):
         cw = CodeWriter.CodeWriter('test1.test')
@@ -207,7 +204,6 @@ class TestCodeWriterPush(unittest.TestCase):
         ]
         cw.close()
         self.assertEqual(result, expected)
-
 
 
 
@@ -396,6 +392,148 @@ class TestCodeWriterPop(unittest.TestCase):
         ]
         cw.close()
         self.assertEqual(result, expected)
+
+
+
+class TestCodeWriterArithmetic(unittest.TestCase):
+
+    def test_add(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_add_command()
+        expected = [
+            '// add',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # *SP = *SP + D
+            'A=M',
+            'M=D+M',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_sub(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_sub_command()
+        expected = [
+            '// sub',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # *SP = *SP - D
+            'A=M',
+            'M=M-D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_neg(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_neg_command()
+        expected = [
+            '// neg',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # *SP = -*SP
+            'A=M',
+            'M=-M',
+
+            '@SP', # SP++
+            'M=M+1'
+
+#       Sneaky way to do it. Works but feels dirty
+#            '@SP', # *SP - 1 = - (*SP - 1)
+#            'A=M-1',
+#            'M=M-D',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+    # TODO: Test 'eq' command
+    # TODO: Test gt (greater than) command
+    # TODO: Test lt (less than) command
+
+    def test_and(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_and_command()
+        expected = [
+            '// and',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # *SP = *SP & D
+            'A=M',
+            'M=M&D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_or(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_or_command()
+        expected = [
+            '// or',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # *SP = *SP | D
+            'A=M',
+            'M=M|D',
+
+            '@SP', # SP++
+            'M=M+1'
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+    # TODO: Test 'not' command
+
+
 
 
 #if __name__ == '__main__':

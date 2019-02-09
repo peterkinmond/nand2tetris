@@ -13,6 +13,50 @@ class CodeWriter:
     def write_push_pop(self, command, segment, index):
         pass
 
+
+    def convert_add_command(self):
+        return \
+            ['// add'] + \
+            self.decrement_sp() + \
+            self.d_equals_star_sp() + \
+            self.decrement_sp() + \
+            self.star_sp_equals_star_sp_plus_d() + \
+            self.increment_sp()
+
+    def convert_sub_command(self):
+        return \
+            ['// sub'] + \
+            self.decrement_sp() + \
+            self.d_equals_star_sp() + \
+            self.decrement_sp() + \
+            self.star_sp_equals_star_sp_minus_d() + \
+            self.increment_sp()
+
+    def convert_neg_command(self):
+        return \
+            ['// neg'] + \
+            self.decrement_sp() + \
+            self.star_sp_equals_neg_star_sp() + \
+            self.increment_sp()
+
+    def convert_and_command(self):
+        return \
+            ['// and'] + \
+            self.decrement_sp() + \
+            self.d_equals_star_sp() + \
+            self.decrement_sp() + \
+            self.star_sp_equals_star_sp_and_d() + \
+            self.increment_sp()
+
+    def convert_or_command(self):
+        return \
+            ['// or'] + \
+            self.decrement_sp() + \
+            self.d_equals_star_sp() + \
+            self.decrement_sp() + \
+            self.star_sp_equals_star_sp_or_d() + \
+            self.increment_sp()
+
     def convert_push_command(self, command, segment, index):
         if segment == "constant":
             return \
@@ -99,6 +143,13 @@ class CodeWriter:
             'M=D',
         ]
 
+    def star_sp_equals_neg_star_sp(self):
+        return [
+            '@SP', # *SP = -*SP
+            'A=M',
+            'M=-M',
+        ]
+
     def star_sp_equals_index(self, index):
         return [
             '@' + str(index), # *SP = i
@@ -116,6 +167,41 @@ class CodeWriter:
             '@SP', # *SP = D
             'A=M',
             'M=D',
+        ]
+
+    def d_equals_star_sp(self):
+        return [
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+        ]
+
+    def star_sp_equals_star_sp_plus_d(self):
+        return [
+            '@SP', # *SP = *SP + D
+            'A=M',
+            'M=D+M',
+        ]
+
+    def star_sp_equals_star_sp_minus_d(self):
+        return [
+            '@SP', # *SP = *SP - D
+            'A=M',
+            'M=M-D',
+        ]
+
+    def star_sp_equals_star_sp_and_d(self):
+        return [
+            '@SP', # *SP = *SP & D
+            'A=M',
+            'M=M&D',
+        ]
+
+    def star_sp_equals_star_sp_or_d(self):
+        return [
+            '@SP', # *SP = *SP | D
+            'A=M',
+            'M=M|D',
         ]
 
     def get_segment_type(self, segment, index):
