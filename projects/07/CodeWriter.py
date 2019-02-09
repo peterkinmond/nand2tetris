@@ -1,3 +1,5 @@
+import Constants
+
 class CodeWriter:
     def __init__(self, output_filepath):
         self.output_filepath = output_filepath
@@ -6,12 +8,23 @@ class CodeWriter:
     # Writes to the output_file the assembly code that implements the given
     # arithmetic command
     def write_arithmetic(self, command):
-        pass
+        if command in [Constants.C_ARITHMETIC]:
+            result = self.convert_builtin_operator_command('add')
+            for line in result:
+                self.output_file.write(line + '\n')
+
 
     # Writes to the output_file the assembly code that implements the given
     # command, where command is either C_PUSH or C_POP
     def write_push_pop(self, command, segment, index):
-        pass
+        if command == Constants.C_PUSH:
+            result = self.convert_push_command(command, segment, index)
+            for line in result:
+                self.output_file.write(line + '\n')
+        else:
+            result = self.convert_pop_command(command, segment, index)
+            for line in result:
+                self.output_file.write(line + '\n')
 
     # Handle add, sub, and, or commands
     # Since they're all the same except for operator

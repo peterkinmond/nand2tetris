@@ -1,6 +1,7 @@
 import os
 import sys
 import CodeWriter
+import Constants
 import Parser
 
 def main():
@@ -20,10 +21,10 @@ def main():
     while parser.has_more_commands():
         parser.advance()
 
-        if parser.command_type() in [C_PUSH, C_POP]:
-            code_writer.write_push_pop()
+        if parser.command_type in [Constants.C_PUSH, Constants.C_POP]:
+            code_writer.write_push_pop(parser.command_type, parser.arg1, parser.arg2)
         else:
-            code_writer.write_arithmetic()
+            code_writer.write_arithmetic(parser.command_type)
 
     print('Closing file: ' + filepath)
     code_writer.close()
