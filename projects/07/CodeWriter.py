@@ -4,15 +4,25 @@ class CodeWriter:
     def __init__(self, output_filepath):
         self.output_filepath = output_filepath
         self.output_file = open(output_filepath, 'w')
+        self.label_counter = 0
 
     # Writes to the output_file the assembly code that implements the given
     # arithmetic command
     def write_arithmetic(self, command):
-        if command in [Constants.C_ARITHMETIC]:
-            result = self.convert_builtin_operator_command('add')
-            for line in result:
-                self.output_file.write(line + '\n')
+        result = []
+        if command in ['add', 'sub', 'and', 'or']:
+            result = self.convert_builtin_operator_command(command)
+        elif command in ['eq', 'gt', 'lt']:
+            result = self.convert_comparison_command(command)
+        elif command == 'neg':
+            result = self.convert_neg_command()
+        elif command == 'not':
+            result = self.convert_not_command()
+        else:
+            raise Exception("Command '" + command + "' not handled")
 
+        for line in result:
+            self.output_file.write(line + '\n')
 
     # Writes to the output_file the assembly code that implements the given
     # command, where command is either C_PUSH or C_POP
@@ -196,30 +206,33 @@ class CodeWriter:
         ]
 
     def star_sp_equals_star_sp_command_d(self, command_type):
+        # TODO: Less hacky way to ensure labels are unique?
+        self.label_counter += 1
+
         return [
             '@SP', # *SP = *SP - D
             'A=M',
             'M=M-D',
             'D=M', # if M > 0
 
-            '@SETTRUE',
+            "@SETTRUE{}".format(self.label_counter),
             'D;' + self.get_jump_type(command_type),
 
-            '(SETFALSE)',
+            "(SETFALSE{})".format(self.label_counter),
             '@SP',
             'A=M',
             'M=0', # false
-            '@FINISH',
+            "@FINISH{}".format(self.label_counter),
             '0;JMP',
 
-            '(SETTRUE)',
+            "(SETTRUE{})".format(self.label_counter),
             '@SP',
             'A=M',
             'M=-1', # true
-            '@FINISH',
+            "@FINISH{}".format(self.label_counter),
             '0;JMP',
 
-            '(FINISH)',
+            "(FINISH{})".format(self.label_counter),
         ]
 
     def get_operator(self, command_type):

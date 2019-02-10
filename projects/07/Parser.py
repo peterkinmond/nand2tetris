@@ -23,7 +23,10 @@ class Parser:
         self.command_type = self.get_command_type(command_parts[0])
         self.arg1 = None
         self.arg2 = None
-        if len(command_parts) > 1:
+
+        if self.command_type == Constants.C_ARITHMETIC:
+            self.arg1 = command_parts[0]
+        else:
             self.arg1 = command_parts[1]
             self.arg2 = command_parts[2]
 
@@ -35,9 +38,17 @@ class Parser:
     def get_command_type(self, command):
         command_types = {
             'add': Constants.C_ARITHMETIC,
-            # TODO: add all arithmetic/logic commands
+            'sub': Constants.C_ARITHMETIC,
+            'neg': Constants.C_ARITHMETIC,
+            'eq': Constants.C_ARITHMETIC,
+            'gt': Constants.C_ARITHMETIC,
+            'lt': Constants.C_ARITHMETIC,
+            'and': Constants.C_ARITHMETIC,
+            'or': Constants.C_ARITHMETIC,
+            'not': Constants.C_ARITHMETIC,
             'push': Constants.C_PUSH,
             'pop': Constants.C_POP,
+            # TODO: branching/function commands
 #            'label': C_LABEL,
 #            'goto': C_GOTO,
 #            'if-goto': C_IF,
@@ -46,11 +57,3 @@ class Parser:
 #            'return': C_RETURN
         }
         return command_types[command]
-
-#    def arg1(self):
-#        pass
-#
-#    def arg2(self):
-#        pass
-#
-

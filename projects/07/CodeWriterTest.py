@@ -495,24 +495,24 @@ class TestCodeWriterArithmetic(unittest.TestCase):
 
             'D=M', # if M == 0
 
-            '@SETTRUE',
+            '@SETTRUE1',
             'D;JEQ',
 
-            '(SETFALSE)',
+            '(SETFALSE1)',
             '@SP',
             'A=M',
             'M=0', # false
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(SETTRUE)',
+            '(SETTRUE1)',
             '@SP',
             'A=M',
             'M=-1', # true
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(FINISH)',
+            '(FINISH1)',
             '@SP', # SP++
             'M=M+1',
         ]
@@ -541,24 +541,24 @@ class TestCodeWriterArithmetic(unittest.TestCase):
 
             'D=M', # if M > 0
 
-            '@SETTRUE',
+            '@SETTRUE1',
             'D;JGT',
 
-            '(SETFALSE)',
+            '(SETFALSE1)',
             '@SP',
             'A=M',
             'M=0', # false
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(SETTRUE)',
+            '(SETTRUE1)',
             '@SP',
             'A=M',
             'M=-1', # true
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(FINISH)',
+            '(FINISH1)',
             '@SP', # SP++
             'M=M+1',
         ]
@@ -587,24 +587,24 @@ class TestCodeWriterArithmetic(unittest.TestCase):
 
             'D=M', # if M < 0
 
-            '@SETTRUE',
+            '@SETTRUE1',
             'D;JLT',
 
-            '(SETFALSE)',
+            '(SETFALSE1)',
             '@SP',
             'A=M',
             'M=0', # false
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(SETTRUE)',
+            '(SETTRUE1)',
             '@SP',
             'A=M',
             'M=-1', # true
-            '@FINISH',
+            '@FINISH1',
             '0;JMP',
 
-            '(FINISH)',
+            '(FINISH1)',
             '@SP', # SP++
             'M=M+1',
         ]
