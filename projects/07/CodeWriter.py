@@ -19,7 +19,7 @@ class CodeWriter:
         elif command == 'not':
             result = self.convert_not_command()
         else:
-            raise Exception("Command '" + command + "' not handled")
+            raise Exception("Command '{}' not handled".format(command))
 
         for line in result:
             self.output_file.write(line + '\n')
@@ -29,12 +29,13 @@ class CodeWriter:
     def write_push_pop(self, command, segment, index):
         if command == Constants.C_PUSH:
             result = self.convert_push_command(command, segment, index)
-            for line in result:
-                self.output_file.write(line + '\n')
-        else:
+        elif command == Constants.C_POP:
             result = self.convert_pop_command(command, segment, index)
-            for line in result:
-                self.output_file.write(line + '\n')
+        else:
+            raise Exception("Command '{}' not handled".format(command))
+
+        for line in result:
+            self.output_file.write(line + '\n')
 
     # Handle add, sub, and, or commands
     # Since they're all the same except for operator
@@ -114,16 +115,23 @@ class CodeWriter:
             'M=D'
         ]
 
-
     def addr_equals_segment_plus_i(self, segment, index):
         return [
             '@' + self.get_segment_type(segment, index), # D = segment + i
-            'D=M',
+            self.set_d(segment),
             '@' + str(index),
             'D=D+A',
             '@R13', # addr = D, store for later
             'M=D',
         ]
+
+    def set_d(self, segment):
+        # For temp segment we use value 5 (stored as address)
+        # rather than the memory address at that value
+        if segment == 'temp':
+            return 'D=A'
+        else:
+            return 'D=M'
 
     def increment_sp(self):
         return [
@@ -140,6 +148,7 @@ class CodeWriter:
     def star_sp_equals_star_addr(self):
         return [
             '@R13', # D = *addr
+            'A=M',
             'D=M',
 
             '@SP', # *SP = D
@@ -154,7 +163,7 @@ class CodeWriter:
             'D=M',
 
             '@R13', # *addr = D
-            'M=A',
+            'A=M',
             'M=D',
         ]
 

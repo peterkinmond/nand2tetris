@@ -28,7 +28,7 @@ class Parser:
             self.arg1 = command_parts[0]
         else:
             self.arg1 = command_parts[1]
-            self.arg2 = command_parts[2]
+            self.arg2 = int(command_parts[2])
 
         print('Command type: ' + self.command_type)
         print('Arg 1: ' + str(self.arg1))

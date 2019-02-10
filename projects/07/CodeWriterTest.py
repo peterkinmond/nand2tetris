@@ -18,6 +18,7 @@ class TestCodeWriterPush(unittest.TestCase):
             'M=D',  # R13 = D, to store it for later
 
             '@R13', # *SP = *addr
+            'A=M',
             'D=M',
             '@SP',
             'A=M',
@@ -43,6 +44,7 @@ class TestCodeWriterPush(unittest.TestCase):
             'M=D',  # R13 = D, to store it for later
 
             '@R13', # *SP = *addr
+            'A=M',
             'D=M',
             '@SP',
             'A=M',
@@ -68,6 +70,7 @@ class TestCodeWriterPush(unittest.TestCase):
             'M=D',  # R13 = D, to store it for later
 
             '@R13', # *SP = *addr
+            'A=M',
             'D=M',
             '@SP',
             'A=M',
@@ -93,6 +96,7 @@ class TestCodeWriterPush(unittest.TestCase):
             'M=D',  # R13 = D, to store it for later
 
             '@R13', # *SP = *addr
+            'A=M',
             'D=M',
             '@SP',
             'A=M',
@@ -187,13 +191,14 @@ class TestCodeWriterPush(unittest.TestCase):
             '// push temp 4',
 
             '@5', # addr = segment + i
-            'D=M',
+            'D=A',
             '@4',
             'D=D+A', # D = segment + i
             '@R13',
             'M=D',  # R13 = D, to store it for later
 
             '@R13', # *SP = *addr
+            'A=M',
             'D=M',
             '@SP',
             'A=M',
@@ -227,7 +232,7 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M', # *SP, M is now value to pop
             'D=M',
             '@R13',
-            'M=A',
+            'A=M',
             'M=D'
         ]
         cw.close()
@@ -252,7 +257,7 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M', # *SP, M is now value to pop
             'D=M',
             '@R13',
-            'M=A',
+            'A=M',
             'M=D'
         ]
         cw.close()
@@ -277,7 +282,7 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M', # *SP, M is now value to pop
             'D=M',
             '@R13',
-            'M=A',
+            'A=M',
             'M=D'
         ]
         cw.close()
@@ -302,7 +307,7 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M', # *SP, M is now value to pop
             'D=M',
             '@R13',
-            'M=A',
+            'A=M',
             'M=D'
         ]
         cw.close()
@@ -374,7 +379,7 @@ class TestCodeWriterPop(unittest.TestCase):
         expected = [
             '// pop temp 4',
             '@5', # addr = 5 + i
-            'D=M',
+            'D=A',
             '@4',
             'D=D+A', # D = 5 + i
             '@R13',
@@ -387,7 +392,7 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M', # *SP, M is now value to pop
             'D=M',
             '@R13',
-            'M=A',
+            'A=M',
             'M=D'
         ]
         cw.close()
