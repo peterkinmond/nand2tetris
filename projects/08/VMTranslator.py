@@ -25,6 +25,14 @@ def main():
             code_writer.write_arithmetic(parser.arg1)
         elif parser.command_type in [Constants.C_PUSH, Constants.C_POP]:
             code_writer.write_push_pop(parser.command_type, parser.arg1, parser.arg2)
+        elif parser.command_type == Constants.C_LABEL:
+            code_writer.write_label(parser.arg1)
+        elif parser.command_type == Constants.C_GOTO:
+            code_writer.write_goto(parser.arg1)
+        elif parser.command_type == Constants.C_IF:
+            code_writer.write_if(parser.arg1)
+        else:
+            raise Exception("Command '{}' not handled".format(parser.command_type))
 
     print('Closing file: ' + filepath)
     code_writer.close()

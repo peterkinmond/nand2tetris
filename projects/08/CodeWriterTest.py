@@ -399,7 +399,6 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-
 class TestCodeWriterArithmetic(unittest.TestCase):
 
     def test_add(self):
@@ -693,7 +692,47 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class TestCodeWriterBranching(unittest.TestCase):
 
+    def test_label(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_label_command('TEST_LABEL')
+        expected = [
+            '// label TEST_LABEL',
+            '(TEST_LABEL)',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_goto(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_goto_command('TEST_LABEL')
+        expected = [
+            '// goto TEST_LABEL',
+            '@TEST_LABEL',
+            '0;JMP',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    def test_if_goto(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_if_goto_command('TEST_LABEL')
+        expected = [
+            '// if-goto TEST_LABEL',
+
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+
+            '@TEST_LABEL', # if cond jump
+            'D;JGT',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
 
 
 #if __name__ == '__main__':

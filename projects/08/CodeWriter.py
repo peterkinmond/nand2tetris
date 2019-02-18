@@ -37,6 +37,33 @@ class CodeWriter:
         for line in result:
             self.output_file.write(line + '\n')
 
+    # Writes assembly code that effects the label command.
+    def write_label(self, label):
+        for line in self.convert_label_command(label):
+            self.output_file.write(line + '\n')
+
+    # Writes assembly code that effects the goto command.
+    def write_goto(self, label):
+        for line in self.convert_goto_command(label):
+            self.output_file.write(line + '\n')
+
+    # Writes assembly code that effects the if-goto command.
+    def write_if(self, label):
+        for line in self.convert_if_goto_command(label):
+            self.output_file.write(line + '\n')
+
+    # Writes assembly code that effects the function command.
+    def write_function(self, function_name, num_vars):
+        pass
+
+    # Writes assembly code that effects the call command.
+    def write_call(self, function_name, num_args):
+        pass
+
+    # Writes assembly code that effects the return command.
+    def write_return(self):
+        pass
+
     # Handle add, sub, and, or commands
     # Since they're all the same except for operator
     def convert_builtin_operator_command(self, command_type):
@@ -104,6 +131,27 @@ class CodeWriter:
             self.addr_equals_segment_plus_i(segment, index) + \
             self.decrement_sp() + \
             self.star_addr_equals_star_sp()
+
+    def convert_label_command(self, label):
+        return [
+            "// label {}".format(label),
+            "({})".format(label)
+        ]
+
+    def convert_goto_command(self, label):
+        return [
+            "// goto {}".format(label),
+            "@{}".format(label),
+            '0;JMP',
+        ]
+
+    def convert_if_goto_command(self, label):
+        return \
+            ["// if-goto {}".format(label)] + \
+            self.decrement_sp() + \
+            self.d_equals_star_sp() + \
+            ["@{}".format(label),
+            'D;JGT']
 
     def segment_equals_star_sp(self, segment, index):
         return [

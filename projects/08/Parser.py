@@ -26,14 +26,16 @@ class Parser:
 
         if self.command_type == Constants.C_ARITHMETIC:
             self.arg1 = command_parts[0]
-        else:
+        elif self.command_type in [Constants.C_PUSH, Constants.C_POP]:
             self.arg1 = command_parts[1]
             self.arg2 = int(command_parts[2])
+        elif self.command_type in [Constants.C_LABEL, Constants.C_GOTO, Constants.C_IF]:
+            self.arg1 = command_parts[1]
 
+        print('Current command: ' + self.current_command)
         print('Command type: ' + self.command_type)
         print('Arg 1: ' + str(self.arg1))
         print('Arg 2: ' + str(self.arg2))
-        print('Current command: ' + self.current_command)
 
     def get_command_type(self, command):
         command_types = {
@@ -48,12 +50,12 @@ class Parser:
             'not': Constants.C_ARITHMETIC,
             'push': Constants.C_PUSH,
             'pop': Constants.C_POP,
+            'label': Constants.C_LABEL,
+            'goto': Constants.C_GOTO,
+            'if-goto': Constants.C_IF,
             # TODO: branching/function commands
-#            'label': C_LABEL,
-#            'goto': C_GOTO,
-#            'if-goto': C_IF,
-#            'function': C_FUNCTION,
-#            'call': C_CALL,
-#            'return': C_RETURN
+#            'function': Constants.C_FUNCTION,
+#            'call': Constants.C_CALL,
+#            'return': Constants.C_RETURN
         }
         return command_types[command]
