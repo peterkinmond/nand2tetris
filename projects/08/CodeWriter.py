@@ -54,7 +54,8 @@ class CodeWriter:
 
     # Writes assembly code that effects the function command.
     def write_function(self, function_name, num_vars):
-        pass
+        for line in self.convert_function_command(function_name, num_vars):
+            self.output_file.write(line + '\n')
 
     # Writes assembly code that effects the call command.
     def write_call(self, function_name, num_args):
@@ -62,7 +63,58 @@ class CodeWriter:
 
     # Writes assembly code that effects the return command.
     def write_return(self):
-        pass
+        for line in self.convert_return_command():
+            self.output_file.write(line + '\n')
+
+    def addr_equals_star_addr_minus_offset(self, target_addr, target_addr_symbol, source_addr, offset):
+        return [
+            # For example:
+            #'// retAddr = *(endFrame - 5)', # gets ret address
+            #'// THAT = *(endFrame - 1)', # restores THAT of caller
+            "// {} = *({} - {})".format(target_addr_symbol, source_addr, offset),
+            "@{}".format(offset), # offset
+            'D=A',
+            '@R13',
+            'D=M-D',  # source_addr - 5
+            'A=D',
+            'D=M',
+            "@{}".format(target_addr), # target_addr
+            'M=D',
+        ]
+
+    def convert_return_command(self):
+        expected = [
+            '// return',
+
+            '// endFrame = LCL', # endFrame is a temp var
+            '@LCL',
+            'D=M',
+            '@R13',  # Store endFrame here
+            'M=D',
+            ] + \
+            self.addr_equals_star_addr_minus_offset('R14', 'retAddr', 'endFrame', 5) + \
+            ['// *ARG = pop()'] + \
+            self.decrement_sp() + \
+            self.star_addr_equals_star_sp('ARG') + [ \
+
+            '// SP = ARG + 1', # reposition SP of caller
+            '@ARG',
+            'D=M+1',
+            '@SP',
+            'M=D',
+
+            ] + \
+            self.addr_equals_star_addr_minus_offset('THAT', 'THAT', 'endFrame', 1) + \
+            self.addr_equals_star_addr_minus_offset('THIS', 'THIS', 'endFrame', 2) + \
+            self.addr_equals_star_addr_minus_offset('ARG', 'ARG', 'endFrame', 3) + \
+            self.addr_equals_star_addr_minus_offset('LCL', 'LCL', 'endFrame', 4) + [ \
+
+            '// goto retAddr',
+            '@R14', # retAddr stored here
+            'A=M',
+            '0;JMP',
+        ]
+        return expected
 
     # Handle add, sub, and, or commands
     # Since they're all the same except for operator
@@ -130,7 +182,7 @@ class CodeWriter:
             ["// {} {} {}".format(command, segment, index)] + \
             self.addr_equals_segment_plus_i(segment, index) + \
             self.decrement_sp() + \
-            self.star_addr_equals_star_sp()
+            self.star_addr_equals_star_sp('R13') # Use R13 as temp storage
 
     def convert_label_command(self, label):
         return [
@@ -152,6 +204,13 @@ class CodeWriter:
             self.d_equals_star_sp() + \
             ["@{}".format(label),
             'D;JGT']
+
+    def convert_function_command(self, function_name, num_vars):
+        return \
+            ["// function {} {}".format(function_name, num_vars)] + \
+            ["({})".format(function_name)] + \
+            self.convert_push_command(Constants.C_PUSH, 'constant', 0) + \
+            self.convert_push_command(Constants.C_PUSH, 'constant', 0)
 
     def segment_equals_star_sp(self, segment, index):
         return [
@@ -204,13 +263,13 @@ class CodeWriter:
             'M=D',
         ]
 
-    def star_addr_equals_star_sp(self):
+    def star_addr_equals_star_sp(self, addr):
         return [
             '@SP', # D = *SP
             'A=M',
             'D=M',
 
-            '@R13', # *addr = D
+            "@{}".format(addr),
             'A=M',
             'M=D',
         ]

@@ -735,6 +735,130 @@ class TestCodeWriterBranching(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class TestCodeWriterFunctions(unittest.TestCase):
+
+    def test_function_command(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_function_command('Function.test', 2)
+        expected = [
+            '// function Function.test 2',
+            '(Function.test)', # Push 2 local vars
+            '// C_PUSH constant 0', # local 0
+            '@0', # D = i
+            'D=A',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// C_PUSH constant 0', # local 1
+            '@0', # D = i
+            'D=A',
+
+            '@SP', # *SP = D
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+    # TODO: test call command
+
+    def test_return_command(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_return_command()
+        expected = [
+            '// return',
+
+            '// endFrame = LCL', # endFrame is a temp var
+            '@LCL',
+            'D=M',
+            '@R13',  # Store endFrame here
+            'M=D',
+
+            '// retAddr = *(endFrame - 5)', # gets ret address
+            '@5',
+            'D=A',
+            '@R13',
+            'D=M-D',  # endFrame - 5
+            'A=D',
+            'D=M',
+            '@R14', # Store retAddr here
+            'M=D',
+
+            '// *ARG = pop()', # reposition ret value for caller
+            '@SP', # SP--
+            'M=M-1',
+
+            '@SP', # D = *SP
+            'A=M',
+            'D=M',
+            '@ARG', # *ARG = D
+            'A=M',
+            'M=D',
+
+            '// SP = ARG + 1', # reposition SP of caller
+            '@ARG',
+            'D=M+1',
+            '@SP',
+            'M=D',
+
+            '// THAT = *(endFrame - 1)', # restores THAT of caller
+            '@1',
+            'D=A',
+            '@R13',
+            'D=M-D',  # endFrame - i
+            'A=D',
+            'D=M',  # value in D
+            '@THAT',
+            'M=D',
+
+            '// THIS = *(endFrame - 2)', # restores THIS of caller
+            '@2',
+            'D=A',
+            '@R13',
+            'D=M-D',  # endFrame - i
+            'A=D',
+            'D=M',  # value in D
+            '@THIS',
+            'M=D',
+
+            '// ARG = *(endFrame - 3)', # restores ARG of caller
+            '@3',
+            'D=A',
+            '@R13',
+            'D=M-D',  # endFrame - i
+            'A=D',
+            'D=M',  # value in D
+            '@ARG',
+            'M=D',
+
+            '// LCL = *(endFrame - 4)', # restores LCL of caller
+            '@4',
+            'D=A',
+            '@R13',
+            'D=M-D',  # endFrame - i
+            'A=D',
+            'D=M',  # value in D
+            '@LCL',
+            'M=D',
+
+            '// goto retAddr',
+            '@R14', # retAddr stored here
+            'A=M',
+            '0;JMP',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
+
+
+
 #if __name__ == '__main__':
 #    unittest.main()
 

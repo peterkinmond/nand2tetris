@@ -31,6 +31,12 @@ def main():
             code_writer.write_goto(parser.arg1)
         elif parser.command_type == Constants.C_IF:
             code_writer.write_if(parser.arg1)
+        elif parser.command_type == Constants.C_FUNCTION:
+            code_writer.write_function(parser.arg1, parser.arg2)
+        elif parser.command_type == Constants.C_CALL:
+            code_writer.write_call(parser.arg1, parser.arg2)
+        elif parser.command_type == Constants.C_RETURN:
+            code_writer.write_return()
         else:
             raise Exception("Command '{}' not handled".format(parser.command_type))
 
