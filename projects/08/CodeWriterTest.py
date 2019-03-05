@@ -768,7 +768,93 @@ class TestCodeWriterFunctions(unittest.TestCase):
         cw.close()
         self.assertEqual(result, expected)
 
-    # TODO: test call command
+    def test_call_command(self):
+        cw = CodeWriter.CodeWriter('test1.test')
+        result = cw.convert_call_command('Function.test', 1)
+        expected = [
+            '// call Function.test 1', # VM command
+
+            '// push Function.something', # Using translator-gen label
+            '@Function.something', # *SP = Function.something
+            'D=M',
+
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// push LCL', # Saves LCL of caller
+            '@LCL', # *SP = LCL
+            'D=M',
+
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// push ARG', # Saves ARG of caller
+            '@ARG', # *SP = ARG
+            'D=M',
+
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// push THIS', # Saves THIS of caller
+            '@THIS', # *SP = THIS
+            'D=M',
+
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// push THAT', # Saves THAT of caller
+            '@THAT', # *SP = THAT
+            'D=M',
+
+            '@SP',
+            'A=M',
+            'M=D',
+
+            '@SP', # SP++
+            'M=M+1',
+
+            '// ARG = SP-5-nArgs', # Repositions ARG
+            '@SP', # SP - 5 - nArgs
+            'D=M',
+            '@5',
+            'D=D-A',
+            '@1', # nArgs
+            'D=D-A',
+
+            '@ARG',
+            'M=D',
+
+            '// LCL = SP,' # Repositions LCL
+            '@SP',
+            'D=M',
+            '@LCL',
+            'M=D',
+
+            '// goto Function.test', # Transfers control to called function
+            '@Function.test', # functionName is Function.test
+            '0;JMP',
+
+            '// (retAddrLabel)', # The same translator-gen label
+            '(Function.something)',
+        ]
+        cw.close()
+        self.assertEqual(result, expected)
 
     def test_return_command(self):
         cw = CodeWriter.CodeWriter('test1.test')

@@ -1,4 +1,5 @@
 import Constants
+from random import randint
 
 class CodeWriter:
     def __init__(self, output_filepath):
@@ -59,7 +60,55 @@ class CodeWriter:
 
     # Writes assembly code that effects the call command.
     def write_call(self, function_name, num_args):
-        pass
+        for line in self.convert_call_command(function_name, num_args):
+            self.output_file.write(line + '\n')
+
+    def convert_push_segment(self, segment):
+        return \
+            ["// push {}".format(segment)] + \
+            self.star_sp_equals_segment(segment) + \
+            self.increment_sp()
+
+    def convert_call_command(self, function_name, num_args):
+        # TODO: Create return addresss labels the correct way
+        # For now use random number for unique function name
+        randvalue = randint(0, 10000)
+        genned_function = "Function.{}".format(randvalue)
+
+        return \
+            ["// call {} {}".format(function_name, num_args)] + [ \
+            "// push {}".format(genned_function),
+            "@{}".format(genned_function),
+            'D=A',
+            '@SP',
+            'A=M',
+            'M=D',
+            '@SP',
+            'M=M+1', ] + \
+            self.convert_push_segment('LCL') + \
+            self.convert_push_segment('ARG') + \
+            self.convert_push_segment('THIS') + \
+            self.convert_push_segment('THAT') + [ \
+            '// ARG = SP-5-nArgs', # Repositions ARG
+            '@SP', # SP - 5 - nArgs
+            'D=M',
+            '@5',
+            'D=D-A',
+            "@{}".format(num_args), # nArgs
+            'D=D-A',
+            '@ARG',
+            'M=D',
+
+            '// LCL = SP', # Repositions LCL
+            '@SP',
+            'D=M',
+            '@LCL',
+            'M=D'] + \
+            self.convert_goto_command(function_name) + [ \
+            '// (retAddrLabel)', # The same translator-gen label
+            "(Function.{})".format(randvalue),
+            ]
+
 
     # Writes assembly code that effects the return command.
     def write_return(self):
@@ -282,7 +331,7 @@ class CodeWriter:
             'M=D',
         ]
 
-    def star_sp_equals_segment(self, segment, index):
+    def star_sp_equals_segment(self, segment, index=0):
         return [
             '@' + self.get_segment_type(segment, index), # D = segment
             'D=M',
@@ -368,6 +417,8 @@ class CodeWriter:
         }[command_type]
 
     def get_segment_type(self, segment, index):
+        if len(segment.split('.')) > 1:
+            return segment
         if (segment == 'pointer'):
             return ['THIS', 'THAT'][index]
 
@@ -376,10 +427,14 @@ class CodeWriter:
 
         segment_types = {
             'local': 'LCL',
+            'LCL': 'LCL',
             'argument': 'ARG',
+            'ARG': 'ARG',
             'temp': '5',
             'this': 'THIS',
+            'THIS': 'THIS',
             'that': 'THAT',
+            'THAT': 'THAT',
         }
         return segment_types[segment]
 
