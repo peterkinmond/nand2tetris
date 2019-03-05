@@ -63,53 +63,6 @@ class CodeWriter:
         for line in self.convert_call_command(function_name, num_args):
             self.output_file.write(line + '\n')
 
-    def convert_push_segment(self, segment):
-        return \
-            ["// push {}".format(segment)] + \
-            self.star_sp_equals_segment(segment) + \
-            self.increment_sp()
-
-    def convert_call_command(self, function_name, num_args):
-        # TODO: Create return addresss labels the correct way
-        # For now use random number for unique function name
-        randvalue = randint(0, 10000)
-        genned_function = "Function.{}".format(randvalue)
-
-        return \
-            ["// call {} {}".format(function_name, num_args)] + [ \
-            "// push {}".format(genned_function),
-            "@{}".format(genned_function),
-            'D=A',
-            '@SP',
-            'A=M',
-            'M=D',
-            '@SP',
-            'M=M+1', ] + \
-            self.convert_push_segment('LCL') + \
-            self.convert_push_segment('ARG') + \
-            self.convert_push_segment('THIS') + \
-            self.convert_push_segment('THAT') + [ \
-            '// ARG = SP-5-nArgs', # Repositions ARG
-            '@SP', # SP - 5 - nArgs
-            'D=M',
-            '@5',
-            'D=D-A',
-            "@{}".format(num_args), # nArgs
-            'D=D-A',
-            '@ARG',
-            'M=D',
-
-            '// LCL = SP', # Repositions LCL
-            '@SP',
-            'D=M',
-            '@LCL',
-            'M=D'] + \
-            self.convert_goto_command(function_name) + [ \
-            '// (retAddrLabel)', # The same translator-gen label
-            "(Function.{})".format(randvalue),
-            ]
-
-
     # Writes assembly code that effects the return command.
     def write_return(self):
         for line in self.convert_return_command():
@@ -149,6 +102,12 @@ class CodeWriter:
             self.d_equals_star_sp() + \
             self.decrement_sp() + \
             self.star_sp_equals_star_sp_command_d(command_type) + \
+            self.increment_sp()
+
+    def convert_push_segment(self, segment):
+        return \
+            ["// push {}".format(segment)] + \
+            self.star_sp_equals_segment(segment) + \
             self.increment_sp()
 
     def convert_push_command(self, command, segment, index):
@@ -211,6 +170,46 @@ class CodeWriter:
         for x in range(0, num_vars):
             result += self.convert_push_command(Constants.C_PUSH, 'constant', 0)
         return result
+
+    def convert_call_command(self, function_name, num_args):
+        # TODO: Create return addresss labels the correct way
+        # For now use random number for unique function name
+        randvalue = randint(0, 10000)
+        genned_function = "Function.{}".format(randvalue)
+
+        return \
+            ["// call {} {}".format(function_name, num_args)] + [ \
+            "// push {}".format(genned_function),
+            "@{}".format(genned_function),
+            'D=A',
+            '@SP',
+            'A=M',
+            'M=D',
+            '@SP',
+            'M=M+1', ] + \
+            self.convert_push_segment('LCL') + \
+            self.convert_push_segment('ARG') + \
+            self.convert_push_segment('THIS') + \
+            self.convert_push_segment('THAT') + [ \
+            '// ARG = SP-5-nArgs', # Repositions ARG
+            '@SP', # SP - 5 - nArgs
+            'D=M',
+            '@5',
+            'D=D-A',
+            "@{}".format(num_args), # nArgs
+            'D=D-A',
+            '@ARG',
+            'M=D',
+
+            '// LCL = SP', # Repositions LCL
+            '@SP',
+            'D=M',
+            '@LCL',
+            'M=D'] + \
+            self.convert_goto_command(function_name) + [ \
+            '// (retAddrLabel)', # The same translator-gen label
+            "(Function.{})".format(randvalue),
+            ]
 
     def convert_return_command(self):
         expected = [
