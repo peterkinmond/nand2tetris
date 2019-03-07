@@ -1,11 +1,12 @@
 import Constants
-from random import randint
 
 class CodeWriter:
     def __init__(self, output_filepath):
         self.output_filepath = output_filepath
         self.output_file = open(output_filepath, 'w')
+        self.filename_no_extension = self.output_file.name.split(".")[0]
         self.label_counter = 0
+        self.return_label_counter = 1
 
     # Writes to the output_file the assembly code that implements the given
     # arithmetic command
@@ -172,15 +173,14 @@ class CodeWriter:
         return result
 
     def convert_call_command(self, function_name, num_args):
-        # TODO: Create return addresss labels the correct way
-        # For now use random number for unique function name
-        randvalue = randint(0, 10000)
-        genned_function = "Function.{}".format(randvalue)
+        # Format for return address label is "Filename$ret.1"
+        return_address_label = "{}$ret.{}".format(self.filename_no_extension, self.return_label_counter)
+        self.return_label_counter += 1
 
         return \
             ["// call {} {}".format(function_name, num_args)] + [ \
-            "// push {}".format(genned_function),
-            "@{}".format(genned_function),
+            "// push {}".format(return_address_label),
+            "@{}".format(return_address_label),
             'D=A',
             '@SP',
             'A=M',
@@ -208,7 +208,7 @@ class CodeWriter:
             'M=D'] + \
             self.convert_goto_command(function_name) + [ \
             '// (retAddrLabel)', # The same translator-gen label
-            "(Function.{})".format(randvalue),
+            "({})".format(return_address_label),
             ]
 
     def convert_return_command(self):

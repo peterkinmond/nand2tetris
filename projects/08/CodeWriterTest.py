@@ -739,10 +739,10 @@ class TestCodeWriterFunctions(unittest.TestCase):
 
     def test_function_command(self):
         cw = CodeWriter.CodeWriter('test1.test')
-        result = cw.convert_function_command('Function.test', 2)
+        result = cw.convert_function_command('Foo.test', 2)
         expected = [
-            '// function Function.test 2',
-            '(Function.test)', # Push 2 local vars
+            '// function Foo.test 2',
+            '(Foo.test)', # Push 2 local vars
             '// C_PUSH constant 0', # local 0
             '@0', # D = i
             'D=A',
@@ -774,9 +774,9 @@ class TestCodeWriterFunctions(unittest.TestCase):
         expected = [
             '// call Function.test 1', # VM command
 
-            '// push Function.something', # Using translator-gen label
-            '@Function.something', # *SP = Function.something
-            'D=M',
+            '// push test1$ret.1', # Using translator-gen label
+            '@test1$ret.1', # *SP = Function.something
+            'D=A',
 
             '@SP',
             'A=M',
@@ -840,7 +840,7 @@ class TestCodeWriterFunctions(unittest.TestCase):
             '@ARG',
             'M=D',
 
-            '// LCL = SP,' # Repositions LCL
+            '// LCL = SP', # Repositions LCL
             '@SP',
             'D=M',
             '@LCL',
@@ -851,7 +851,7 @@ class TestCodeWriterFunctions(unittest.TestCase):
             '0;JMP',
 
             '// (retAddrLabel)', # The same translator-gen label
-            '(Function.something)',
+            '(test1$ret.1)',
         ]
         cw.close()
         self.assertEqual(result, expected)
