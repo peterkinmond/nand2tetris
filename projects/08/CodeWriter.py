@@ -186,7 +186,7 @@ class CodeWriter:
             self.decrement_sp() + \
             self.d_equals_star_sp() + \
             ["@{}".format(label),
-            'D;JLT']
+            'D;JNE']
 
     def convert_function_command(self, function_name, num_vars):
         result = \

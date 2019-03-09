@@ -154,7 +154,7 @@ M=M-1
 A=M
 D=M
 @LOOP_START
-D;JGT
+D;JNE
 // C_PUSH local 0
 @LCL
 D=M

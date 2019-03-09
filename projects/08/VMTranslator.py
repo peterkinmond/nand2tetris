@@ -6,15 +6,16 @@ import Constants
 import Parser
 
 def main():
-    # TODO: Accept either single source file or directory
     path = sys.argv[1]
     vm_files = []
     asm_filepath = ''
+    is_directory = False
 
     if os.path.isfile(path):
         vm_files = [path]
         asm_filepath = os.path.splitext(path)[0] + ".asm"
     elif os.path.isdir(path):
+        is_directory = True
         if path.endswith('/'):
             path = path[:-1]
         os.chdir(path)
@@ -26,7 +27,12 @@ def main():
         sys.exit()
 
     code_writer = CodeWriter.CodeWriter(asm_filepath)
-    code_writer.write_init()
+
+    # Only run bootstrap code when multiple files (in a dir)
+    # are being translated since it kicks off Sys.init function
+    # which isn't present in the single file VM tests.
+    if is_directory:
+        code_writer.write_init()
 
     for vm_file in vm_files:
         print('Loading file: ' + vm_file)

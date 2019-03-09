@@ -123,7 +123,7 @@ M=M-1
 A=M
 D=M
 @IF_TRUE
-D;JLT
+D;JNE
 // goto IF_FALSE
 @IF_FALSE
 0;JMP

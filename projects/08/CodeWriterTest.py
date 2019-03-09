@@ -729,7 +729,8 @@ class TestCodeWriterBranching(unittest.TestCase):
             'D=M',
 
             '@TEST_LABEL', # if cond jump
-            'D;JLT', # true = -1, false = 0, so check for < 0
+            'D;JNE', # if-goto just looking for any non-zero value
+                     # in order to be true
         ]
         cw.close()
         self.assertEqual(result, expected)
