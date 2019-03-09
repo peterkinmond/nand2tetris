@@ -8,6 +8,30 @@ class CodeWriter:
         self.label_counter = 0
         self.return_label_counter = 1
 
+    # Informs the CodeWriter that the translation of a new VM file
+    # has started
+    def set_file_name(self, filename):
+        pass
+
+    # Writes the assembly instructions that effect the bootstrap code
+    # that initializes the VM. This code must be placed at the beginning
+    # of the generated *.asm file
+    def write_init(self):
+        # Boostrap code is:
+        # SP = 256
+        # call Sys.init
+
+        sp_equals_256 = [
+            '@256',
+            'D=A',
+            '@SP',
+            'M=D'
+        ]
+        for line in sp_equals_256:
+            self.output_file.write(line + '\n')
+
+        self.write_call('Sys.init', 0)
+
     # Writes to the output_file the assembly code that implements the given
     # arithmetic command
     def write_arithmetic(self, command):
@@ -162,7 +186,7 @@ class CodeWriter:
             self.decrement_sp() + \
             self.d_equals_star_sp() + \
             ["@{}".format(label),
-            'D;JGT']
+            'D;JLT']
 
     def convert_function_command(self, function_name, num_vars):
         result = \

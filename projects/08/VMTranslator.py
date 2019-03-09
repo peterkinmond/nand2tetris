@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 import CodeWriter
@@ -5,18 +6,38 @@ import Constants
 import Parser
 
 def main():
-    filepath = sys.argv[1]
+    # TODO: Accept either single source file or directory
+    path = sys.argv[1]
+    vm_files = []
+    asm_filepath = ''
 
-    if not os.path.isfile(filepath):
-        print("File path {} does not exist. Exiting...".format(filepath))
+    if os.path.isfile(path):
+        vm_files = [path]
+        asm_filepath = os.path.splitext(path)[0] + ".asm"
+    elif os.path.isdir(path):
+        if path.endswith('/'):
+            path = path[:-1]
+        os.chdir(path)
+        for file in glob.glob("*.vm"):
+            vm_files.append(file)
+        asm_filepath = os.path.split(path)[1] + ".asm"
+    else:
+        print("Path {} does not exist. Exiting...".format(path))
         sys.exit()
 
-    asm_filepath = os.path.splitext(filepath)[0] + ".asm"
-
-    print('Loading file: ' + filepath)
-    parser = Parser.Parser(filepath)
     code_writer = CodeWriter.CodeWriter(asm_filepath)
+    code_writer.write_init()
 
+    for vm_file in vm_files:
+        print('Loading file: ' + vm_file)
+        code_writer.set_file_name(vm_file)
+        parser = Parser.Parser(vm_file)
+        parse_file(code_writer, parser)
+
+    code_writer.close()
+    print('Closing file: ' + vm_file)
+
+def parse_file(code_writer, parser):
     print('Running through all commands in VM code')
     while parser.has_more_commands():
         parser.advance()
@@ -39,9 +60,6 @@ def main():
             code_writer.write_return()
         else:
             raise Exception("Command '{}' not handled".format(parser.command_type))
-
-    print('Closing file: ' + filepath)
-    code_writer.close()
 
 if __name__ == '__main__':
     main()

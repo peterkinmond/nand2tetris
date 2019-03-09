@@ -1,3 +1,67 @@
+@256
+D=A
+@SP
+M=D
+// call Sys.init 0
+// push NestedCall$ret.1
+@NestedCall$ret.1
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// ARG = SP-5-nArgs
+@SP
+D=M
+@5
+D=D-A
+@0
+D=D-A
+@ARG
+M=D
+// LCL = SP
+@SP
+D=M
+@LCL
+M=D
+// goto Sys.init
+@Sys.init
+0;JMP
+// (retAddrLabel)
+(NestedCall$ret.1)
 // function Sys.init 0
 (Sys.init)
 // C_PUSH constant 4000
@@ -33,8 +97,8 @@ D=M
 @THAT
 M=D
 // call Sys.main 0
-// push Function.551
-@Function.551
+// push NestedCall$ret.2
+@NestedCall$ret.2
 D=A
 @SP
 A=M
@@ -91,7 +155,7 @@ M=D
 @Sys.main
 0;JMP
 // (retAddrLabel)
-(Function.551)
+(NestedCall$ret.2)
 // C_POP temp 1
 @5
 D=A
@@ -264,8 +328,8 @@ M=D
 @SP
 M=M+1
 // call Sys.add12 1
-// push Function.2396
-@Function.2396
+// push NestedCall$ret.3
+@NestedCall$ret.3
 D=A
 @SP
 A=M
@@ -322,7 +386,7 @@ M=D
 @Sys.add12
 0;JMP
 // (retAddrLabel)
-(Function.2396)
+(NestedCall$ret.3)
 // C_POP temp 0
 @5
 D=A
