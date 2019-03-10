@@ -252,8 +252,8 @@ M=M-D
 @SP
 M=M+1
 // call Main.fibonacci 1
-// push FibonacciElement$ret.2
-@FibonacciElement$ret.2
+// push Main$ret.1
+@Main$ret.1
 D=A
 @SP
 A=M
@@ -310,7 +310,7 @@ M=D
 @Main.fibonacci
 0;JMP
 // (retAddrLabel)
-(FibonacciElement$ret.2)
+(Main$ret.1)
 // C_PUSH argument 0
 @ARG
 D=M
@@ -348,8 +348,8 @@ M=M-D
 @SP
 M=M+1
 // call Main.fibonacci 1
-// push FibonacciElement$ret.3
-@FibonacciElement$ret.3
+// push Main$ret.2
+@Main$ret.2
 D=A
 @SP
 A=M
@@ -406,7 +406,7 @@ M=D
 @Main.fibonacci
 0;JMP
 // (retAddrLabel)
-(FibonacciElement$ret.3)
+(Main$ret.2)
 // add
 @SP
 M=M-1
@@ -500,8 +500,8 @@ M=D
 @SP
 M=M+1
 // call Main.fibonacci 1
-// push FibonacciElement$ret.4
-@FibonacciElement$ret.4
+// push Sys$ret.1
+@Sys$ret.1
 D=A
 @SP
 A=M
@@ -558,7 +558,7 @@ M=D
 @Main.fibonacci
 0;JMP
 // (retAddrLabel)
-(FibonacciElement$ret.4)
+(Sys$ret.1)
 // label WHILE
 (WHILE)
 // goto WHILE

@@ -97,8 +97,8 @@ D=M
 @THAT
 M=D
 // call Sys.main 0
-// push NestedCall$ret.2
-@NestedCall$ret.2
+// push Sys$ret.1
+@Sys$ret.1
 D=A
 @SP
 A=M
@@ -155,7 +155,7 @@ M=D
 @Sys.main
 0;JMP
 // (retAddrLabel)
-(NestedCall$ret.2)
+(Sys$ret.1)
 // C_POP temp 1
 @5
 D=A
@@ -328,8 +328,8 @@ M=D
 @SP
 M=M+1
 // call Sys.add12 1
-// push NestedCall$ret.3
-@NestedCall$ret.3
+// push Sys$ret.2
+@Sys$ret.2
 D=A
 @SP
 A=M
@@ -386,7 +386,7 @@ M=D
 @Sys.add12
 0;JMP
 // (retAddrLabel)
-(NestedCall$ret.3)
+(Sys$ret.2)
 // C_POP temp 0
 @5
 D=A

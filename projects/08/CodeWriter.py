@@ -5,11 +5,12 @@ class CodeWriter:
         self.output_file = open(output_filepath, 'w')
         self.set_file_name(output_filepath)
 
+        self.label_counter = 0
+
     # Informs the CodeWriter that the translation of a new VM file
     # has started
     def set_file_name(self, filename):
-        # Reset counters since they are specific to a file
-        self.label_counter = 0
+        # Reset return counters since they are specific to a file
         self.return_label_counter = 1
 
         # Generate file name used by statics
