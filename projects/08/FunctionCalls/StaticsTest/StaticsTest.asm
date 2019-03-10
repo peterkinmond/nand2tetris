@@ -85,7 +85,7 @@ M=M-1
 @SP
 A=M
 D=M
-@StaticsTest.0
+@Class1.0
 M=D
 // C_PUSH argument 1
 @ARG
@@ -108,7 +108,7 @@ M=M-1
 @SP
 A=M
 D=M
-@StaticsTest.1
+@Class1.1
 M=D
 // C_PUSH constant 0
 @0
@@ -190,7 +190,7 @@ A=M
 // function Class1.get 0
 (Class1.get)
 // C_PUSH static 0
-@StaticsTest.0
+@Class1.0
 D=M
 @SP
 A=M
@@ -198,7 +198,7 @@ M=D
 @SP
 M=M+1
 // C_PUSH static 1
-@StaticsTest.1
+@Class1.1
 D=M
 @SP
 A=M
@@ -306,8 +306,8 @@ M=D
 @SP
 M=M+1
 // call Class1.set 2
-// push StaticsTest$ret.2
-@StaticsTest$ret.2
+// push Sys$ret.1
+@Sys$ret.1
 D=A
 @SP
 A=M
@@ -364,7 +364,7 @@ M=D
 @Class1.set
 0;JMP
 // (retAddrLabel)
-(StaticsTest$ret.2)
+(Sys$ret.1)
 // C_POP temp 0
 @5
 D=A
@@ -397,8 +397,8 @@ M=D
 @SP
 M=M+1
 // call Class2.set 2
-// push StaticsTest$ret.3
-@StaticsTest$ret.3
+// push Sys$ret.2
+@Sys$ret.2
 D=A
 @SP
 A=M
@@ -455,7 +455,7 @@ M=D
 @Class2.set
 0;JMP
 // (retAddrLabel)
-(StaticsTest$ret.3)
+(Sys$ret.2)
 // C_POP temp 0
 @5
 D=A
@@ -472,8 +472,8 @@ D=M
 A=M
 M=D
 // call Class1.get 0
-// push StaticsTest$ret.4
-@StaticsTest$ret.4
+// push Sys$ret.3
+@Sys$ret.3
 D=A
 @SP
 A=M
@@ -530,10 +530,10 @@ M=D
 @Class1.get
 0;JMP
 // (retAddrLabel)
-(StaticsTest$ret.4)
+(Sys$ret.3)
 // call Class2.get 0
-// push StaticsTest$ret.5
-@StaticsTest$ret.5
+// push Sys$ret.4
+@Sys$ret.4
 D=A
 @SP
 A=M
@@ -590,7 +590,7 @@ M=D
 @Class2.get
 0;JMP
 // (retAddrLabel)
-(StaticsTest$ret.5)
+(Sys$ret.4)
 // label WHILE
 (WHILE)
 // goto WHILE
@@ -619,7 +619,7 @@ M=M-1
 @SP
 A=M
 D=M
-@StaticsTest.0
+@Class2.0
 M=D
 // C_PUSH argument 1
 @ARG
@@ -642,7 +642,7 @@ M=M-1
 @SP
 A=M
 D=M
-@StaticsTest.1
+@Class2.1
 M=D
 // C_PUSH constant 0
 @0
@@ -724,7 +724,7 @@ A=M
 // function Class2.get 0
 (Class2.get)
 // C_PUSH static 0
-@StaticsTest.0
+@Class2.0
 D=M
 @SP
 A=M
@@ -732,7 +732,7 @@ M=D
 @SP
 M=M+1
 // C_PUSH static 1
-@StaticsTest.1
+@Class2.1
 D=M
 @SP
 A=M

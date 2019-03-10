@@ -8,12 +8,12 @@ import Parser
 def main():
     path = sys.argv[1]
     vm_files = []
-    asm_filepath = ''
+    output_filepath = ''
     is_directory = False
 
     if os.path.isfile(path):
         vm_files = [path]
-        asm_filepath = os.path.splitext(path)[0] + ".asm"
+        output_filepath = os.path.splitext(path)[0] + ".asm"
     elif os.path.isdir(path):
         is_directory = True
         if path.endswith('/'):
@@ -21,12 +21,12 @@ def main():
         os.chdir(path)
         for file in glob.glob("*.vm"):
             vm_files.append(file)
-        asm_filepath = os.path.split(path)[1] + ".asm"
+        output_filepath = os.path.split(path)[1] + ".asm"
     else:
         print("Path {} does not exist. Exiting...".format(path))
         sys.exit()
 
-    code_writer = CodeWriter.CodeWriter(asm_filepath)
+    code_writer = CodeWriter.CodeWriter(output_filepath)
 
     # Only run bootstrap code when multiple files (in a dir)
     # are being translated since it kicks off Sys.init function

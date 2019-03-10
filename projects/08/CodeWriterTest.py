@@ -5,7 +5,7 @@ import CodeWriter
 class TestCodeWriterPush(unittest.TestCase):
 
     def test_push_local(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'local', 1)
         expected = [
             '// push local 1',
@@ -31,7 +31,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_argument(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'argument', 2)
         expected = [
             '// push argument 2',
@@ -57,7 +57,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_this(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'this', 3)
         expected = [
             '// push this 3',
@@ -83,7 +83,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_that(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'that', 4)
         expected = [
             '// push that 4',
@@ -109,7 +109,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_constant(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'constant', 10)
         expected = [
             '// push constant 10',
@@ -128,12 +128,12 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_static(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'static', 5)
         expected = [
             '// push static 5',
 
-            '@test1.5', # D = var
+            '@Test.5', # D = var
             'D=M',
 
             '@SP', # *SP = D
@@ -147,7 +147,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_pointer_0(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'pointer', 0)
         expected = [
             '// push pointer 0',
@@ -166,7 +166,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_pointer_1(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'pointer', 1)
         expected = [
             '// push pointer 1',
@@ -185,7 +185,7 @@ class TestCodeWriterPush(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_push_temp(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_push_command('push', 'temp', 4)
         expected = [
             '// push temp 4',
@@ -214,7 +214,7 @@ class TestCodeWriterPush(unittest.TestCase):
 
 class TestCodeWriterPop(unittest.TestCase):
     def test_pop_local(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'local', 1)
         expected = [
             '// pop local 1',
@@ -239,7 +239,7 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_pop_argument(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'argument', 2)
         expected = [
             '// pop argument 2',
@@ -264,7 +264,7 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_pop_this(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'this', 3)
         expected = [
             '// pop this 3',
@@ -289,7 +289,7 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_pop_that(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'that', 4)
         expected = [
             '// pop that 4',
@@ -317,7 +317,7 @@ class TestCodeWriterPop(unittest.TestCase):
     # There's no pop for constant
 
     def test_pop_static(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'static', 5)
         expected = [
             '// pop static 5',
@@ -329,14 +329,14 @@ class TestCodeWriterPop(unittest.TestCase):
             'A=M',
             'D=M',
 
-            '@test1.5', # var = D
+            '@Test.5', # var = D
             'M=D'
         ]
         cw.close()
         self.assertEqual(result, expected)
 
     def test_pop_pointer_0(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'pointer', 0)
         expected = [
             '// pop pointer 0',
@@ -355,7 +355,7 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_pop_pointer_1(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'pointer', 1)
         expected = [
             '// pop pointer 1',
@@ -374,7 +374,7 @@ class TestCodeWriterPop(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_pop_temp(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_pop_command('pop', 'temp', 4)
         expected = [
             '// pop temp 4',
@@ -402,7 +402,7 @@ class TestCodeWriterPop(unittest.TestCase):
 class TestCodeWriterArithmetic(unittest.TestCase):
 
     def test_add(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_builtin_operator_command('add')
         expected = [
             '// add',
@@ -428,7 +428,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_sub(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_builtin_operator_command('sub')
         expected = [
             '// sub',
@@ -454,7 +454,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_neg(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_neg_command()
         expected = [
             '// neg',
@@ -478,7 +478,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_eq(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_comparison_command('eq')
         expected = [
             '// eq',
@@ -524,7 +524,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_gt(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_comparison_command('gt')
         expected = [
             '// gt',
@@ -570,7 +570,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_lt(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_comparison_command('lt')
         expected = [
             '// lt',
@@ -616,7 +616,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_and(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_builtin_operator_command('and')
         expected = [
             '// and',
@@ -642,7 +642,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_or(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_builtin_operator_command('or')
         expected = [
             '// or',
@@ -668,7 +668,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_not(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_not_command()
         expected = [
             '// not',
@@ -695,7 +695,7 @@ class TestCodeWriterArithmetic(unittest.TestCase):
 class TestCodeWriterBranching(unittest.TestCase):
 
     def test_label(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_label_command('TEST_LABEL')
         expected = [
             '// label TEST_LABEL',
@@ -705,7 +705,7 @@ class TestCodeWriterBranching(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_goto(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_goto_command('TEST_LABEL')
         expected = [
             '// goto TEST_LABEL',
@@ -716,7 +716,7 @@ class TestCodeWriterBranching(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_if_goto(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_if_goto_command('TEST_LABEL')
         expected = [
             '// if-goto TEST_LABEL',
@@ -739,7 +739,7 @@ class TestCodeWriterBranching(unittest.TestCase):
 class TestCodeWriterFunctions(unittest.TestCase):
 
     def test_function_command(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_function_command('Foo.test', 2)
         expected = [
             '// function Foo.test 2',
@@ -770,13 +770,13 @@ class TestCodeWriterFunctions(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_call_command(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_call_command('Function.test', 1)
         expected = [
             '// call Function.test 1', # VM command
 
-            '// push test1$ret.1', # Using translator-gen label
-            '@test1$ret.1', # *SP = Function.something
+            '// push Test$ret.1', # Using translator-gen label
+            '@Test$ret.1', # *SP = Function.something
             'D=A',
 
             '@SP',
@@ -852,13 +852,13 @@ class TestCodeWriterFunctions(unittest.TestCase):
             '0;JMP',
 
             '// (retAddrLabel)', # The same translator-gen label
-            '(test1$ret.1)',
+            '(Test$ret.1)',
         ]
         cw.close()
         self.assertEqual(result, expected)
 
     def test_return_command(self):
-        cw = CodeWriter.CodeWriter('test1.test')
+        cw = CodeWriter.CodeWriter('Test.vm')
         result = cw.convert_return_command()
         expected = [
             '// return',

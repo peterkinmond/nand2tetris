@@ -2,16 +2,19 @@ import Constants
 
 class CodeWriter:
     def __init__(self, output_filepath):
-        self.output_filepath = output_filepath
         self.output_file = open(output_filepath, 'w')
-        self.filename_no_extension = self.output_file.name.split(".")[0]
-        self.label_counter = 0
-        self.return_label_counter = 1
+        self.set_file_name(output_filepath)
 
     # Informs the CodeWriter that the translation of a new VM file
     # has started
     def set_file_name(self, filename):
-        pass
+        # Reset counters since they are specific to a file
+        self.label_counter = 0
+        self.return_label_counter = 1
+
+        # Generate file name used by statics
+        filename = filename.split('/')[-1]
+        self.filename_no_extension = filename.split(".")[0]
 
     # Writes the assembly instructions that effect the bootstrap code
     # that initializes the VM. This code must be placed at the beginning
@@ -462,9 +465,7 @@ class CodeWriter:
         return segment_types[segment]
 
     def get_static_segment_type(self, segment, index):
-        # Figure out name of the fuxkin thing
-        vm_filename = self.output_filepath.split("/")[-1].split(".")[0]
-        return "{}.{}".format(vm_filename, index)
+        return "{}.{}".format(self.filename_no_extension, index)
 
     def close(self):
         self.output_file.close()

@@ -1,1 +1,3 @@
 *.pyc
+**/Test.vm
+**/test1.test
