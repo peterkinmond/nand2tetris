@@ -1,0 +1,115 @@
+class HangmanGame {
+  field String remainingLetters;
+
+  constructor HangmanGame new() {
+    do initializeScreen();
+    return this;
+  }
+
+  method void initializeScreen() {
+    do drawHangingStructure();
+    do drawHangingMan();
+    do initializeLetters();
+    // TODO: Replace guessed letters with special char?
+    do remainingLetters.setCharAt(2, String.doubleQuote());
+    do drawRemainingLetters();
+    do drawBlanksForWord();
+    return;
+  }
+
+  method void run() {
+    // TODO: Initialize
+    return;
+  }
+
+  method void dispose() {
+    // TODO: Implement
+    do Memory.deAlloc(this);
+    return;
+  }
+
+  method void drawHangingStructure() {
+    // TODO: Make these values dynamic - height, width, startingX, startingY
+    do Screen.drawRectangle(20, 200, 80, 240);
+    do Screen.drawLine(50, 200, 50, 100);
+    do Screen.drawLine(50, 100, 150, 100);
+    do Screen.drawLine(150, 100, 150, 130);
+
+    return;
+  }
+
+  method void drawHangingMan() {
+    // Draw hanging man (will be drawn one piece at a time during gameplay)
+    var int bodyCenterX;
+
+    let bodyCenterX = 150;
+
+    // function void drawCircle(int x, int y, int r): draws a filled 
+    // circle of radius r ≤181 around (x,y), using the current color
+    do Screen.drawCircle(bodyCenterX, 140, 20); // Head
+    do Screen.setColor(false);
+    do Screen.drawCircle(bodyCenterX, 140, 18); 
+
+    do Screen.setColor(true); // Face
+    // TODO: Draw eyes and mouth
+
+    do Screen.drawLine(bodyCenterX, 160, bodyCenterX, 200); // Body
+    do Screen.drawLine(bodyCenterX - 30, 180, bodyCenterX, 180); // Left arm
+    do Screen.drawLine(bodyCenterX, 180, bodyCenterX + 30, 180); // Right arm
+    do Screen.drawLine(bodyCenterX - 30, 230, bodyCenterX, 200); // Left leg
+    do Screen.drawLine(bodyCenterX, 200, bodyCenterX + 30, 230); // Right leg
+
+    // TODO: Draw feet
+
+    return;
+  }
+
+  // Draw remainingLetters (will have 1 letter at a time disappear)
+  method void drawRemainingLetters() {
+    var int i;
+    let i = 0;
+
+    // Want to overwrite existing alphabet
+    do Output.moveCursor(1, 6); // Screen has 23 cursor rows 
+    while (i < remainingLetters.length()) {
+      do Output.printChar(remainingLetters.charAt(i));
+      do Output.printString(" ");
+      let i = i + 1;
+    }
+
+    return;
+  }
+
+  method void initializeLetters() {
+    let remainingLetters = String.new(26);
+    let remainingLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    do drawRemainingLetters();
+    return;
+  }
+
+  method void drawBlanksForWord() {
+    var int wordX, wordY;
+    var int i, offset, width;
+    
+    // TODO: Pick word from list
+    var String TEMP_WORD;
+    let wordX = 250;
+    let wordY = 200;
+
+    let TEMP_WORD = String.new(9);
+    let TEMP_WORD = "FOOBARBAZ";
+
+    let i = 0;
+    let offset = 0;
+    let width = 15;
+    
+    while (i < TEMP_WORD.length()) {
+      do Screen.drawLine(wordX + offset, wordY, wordX + offset + width, wordY);
+      let i = i + 1;
+      let offset = offset + (width * 2); // Width plus spacing
+    }
+
+    return;
+  }
+}
