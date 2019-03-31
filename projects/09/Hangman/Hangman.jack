@@ -1,34 +1,58 @@
 class Hangman {
-  field int bodyCenterX;
-
+  field int bodyCenterX; // Used to position body parts
+  // Track number of incorrect guesses
+  field int maxWrong, currentWrong;
+  
   constructor Hangman new() {
     let bodyCenterX = 150;
-    do drawHangingMan();
+    let maxWrong = 6; // TODO: Make this higher?
+    let currentWrong = 0; // Start fresh
     return this;
   }
 
-  method void drawHangingMan() {
-    // Draw hanging man (will be drawn one piece at a time during gameplay)
+  /** Draw one part of hanging man */
+  method void drawNextBodyPart() {
 
-    do Screen.drawCircle(bodyCenterX, 140, 20); // Head
-    do Screen.setColor(false);
-    do Screen.drawCircle(bodyCenterX, 140, 18); 
+    // TODO: Include eyes and mouth? Other parts?
 
-    do Screen.setColor(true); // Face
-    // TODO: Draw eyes and mouth
+    if (currentWrong = 1) {
+      do Screen.drawCircle(bodyCenterX, 140, 20); // Head
+      do Screen.setColor(false);
+      do Screen.drawCircle(bodyCenterX, 140, 18); 
+      do Screen.setColor(true); // Face
+    }
 
-    do Screen.drawLine(bodyCenterX, 160, bodyCenterX, 200); // Body
-    do Screen.drawLine(bodyCenterX - 30, 180, bodyCenterX, 180); // Left arm
-    do Screen.drawLine(bodyCenterX, 180, bodyCenterX + 30, 180); // Right arm
-    do Screen.drawLine(bodyCenterX - 30, 230, bodyCenterX, 200); // Left leg
-    do Screen.drawLine(bodyCenterX, 200, bodyCenterX + 30, 230); // Right leg
+    if (currentWrong = 2) {
+      do Screen.drawLine(bodyCenterX, 160, bodyCenterX, 200); // Body
+    }
+
+    if (currentWrong = 3) {
+      do Screen.drawLine(bodyCenterX - 30, 180, bodyCenterX, 180); // Left arm
+    }
+
+    if (currentWrong = 4) {
+      do Screen.drawLine(bodyCenterX, 180, bodyCenterX + 30, 180); // Right arm
+    }
+
+    if (currentWrong = 5) {
+      do Screen.drawLine(bodyCenterX - 30, 230, bodyCenterX, 200); // Left leg
+    }
+
+    if (currentWrong = 6) {
+      do Screen.drawLine(bodyCenterX, 200, bodyCenterX + 30, 230); // Right leg
+    }
 
     return;
   }
 
   /** User guessed wrong letter - add part to body */
   method void addPart() {
-    // TODO: Implement
+    let currentWrong = currentWrong + 1;
+    do drawNextBodyPart();
+    if (currentWrong = maxWrong) {
+      // TODO: Implement
+    }
+
     return;
   }
 }

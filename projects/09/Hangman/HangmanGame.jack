@@ -42,12 +42,12 @@ class HangmanGame {
 
       // TODO: Make it work for capital letters
       if ((key > 64) & (key < 91)) { // A-Z (ASCII values: 65-90)
+        let currentLetter = key; // TODO: Use or remove
         do handleGuessedLetter(key);
       }
 
       if ((key > 96) & (key < 123)) { // a-z (ASCII values: 97-122)
-        let key = key - 32; // Make uppercase so we can compare to letters
-        do handleGuessedLetter(key);
+        // TODO: Do we need this? Keyboard input is uppercase only it seems
       }
 
       // Waits for the key to be released
@@ -72,26 +72,67 @@ class HangmanGame {
     return;
   }
 
+  /** See if letter is in remaining letters */
   method boolean isInRemainingLetters(char letter) {
-    // TODO: Implement - see if letter is in remaining letters
+    var int i;
+    let i = 0;
+
+    while (i < remainingLetters.length()) {
+      if (letter = remainingLetters.charAt(i)) {
+        return true;
+      }
+      let i = i + 1;
+    }
     return false;
   }
 
-  method boolean isInWord(char letter) {
-    // TODO: Implement - see if letter is in hidden word
-    return false;
-  }
+  /** Remove letter from remaining letters (since it's been guessed) */
+  method void removeLetter(char letter) {
+    var int i;
+    let i = 0;
 
-  method void revealLetter(char letter) {
-    // TODO: Implement - show any blanks containing letter
+    while (i < remainingLetters.length()) {
+      if (letter = remainingLetters.charAt(i)) {
+        // TODO: Replace guessed letters with special char?
+        do remainingLetters.setCharAt(i, String.doubleQuote());
+      }
+      let i = i + 1;
+    }
+    do drawRemainingLetters(); // Update letters on screen
     return;
   }
 
-  method void removeLetter(char letter) {
-    // TODO: Implement - remove letter from remaining letters (since it's been guessed)
-    // TODO: Replace guessed letters with special char?
-    //do remainingLetters.setCharAt(2, String.doubleQuote());
-    //do drawRemainingLetters();
+  /** Check if hidden word contains letter */
+  method boolean isInWord(char letter) {
+    var int i;
+    let i = 0;
+
+    while (i < word.length()) {
+      if (letter = word.charAt(i)) {
+        return true;
+      }
+      let i = i + 1;
+    }
+    return false;
+  }
+
+  /** Show any blanks in hidden work that match letter */
+  method void revealLetter(char letter) {
+    var int i;
+    let i = 0;
+
+    while (i < word.length()) {
+      if (letter = word.charAt(i)) {
+        // Move cursor to correct spot to write over line
+        // corresponding to letter. The lines are drawn with an 
+        // (x, y) pixel system and the letters are printed with an
+        // (row, column) grid system so we need to bridge the 2 
+        // systems.
+        do Output.moveCursor(17, 28 + (i * 4));
+        do Output.printChar(letter);
+      }
+      let i = i + 1;
+    }
     return;
   }
 
@@ -144,7 +185,8 @@ class HangmanGame {
 
     let i = 0;
     let offset = 0;
-    let width = 15;
+    let width = 16; // Multiple of 8 so it can line up with printed chars
+    // (which are 8 pixels wide)
 
     while (i < word.length()) {
       do Screen.drawLine(wordX + offset, wordY, wordX + offset + width, wordY);

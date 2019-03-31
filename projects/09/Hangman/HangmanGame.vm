@@ -85,6 +85,8 @@ and
 if-goto IF_TRUE0
 goto IF_FALSE0
 label IF_TRUE0
+push local 0
+pop this 3
 push pointer 0
 push local 0
 call HangmanGame.handleGuessedLetter 2
@@ -100,14 +102,6 @@ and
 if-goto IF_TRUE1
 goto IF_FALSE1
 label IF_TRUE1
-push local 0
-push constant 32
-sub
-pop local 0
-push pointer 0
-push local 0
-call HangmanGame.handleGuessedLetter 2
-pop temp 0
 label IF_FALSE1
 label WHILE_EXP2
 push local 0
@@ -156,24 +150,145 @@ label IF_END1
 label IF_FALSE0
 push constant 0
 return
-function HangmanGame.isInRemainingLetters 0
+function HangmanGame.isInRemainingLetters 1
 push argument 0
 pop pointer 0
 push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push this 1
+call String.length 1
+lt
+not
+if-goto WHILE_END0
+push argument 1
+push this 1
+push local 0
+call String.charAt 2
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
 return
-function HangmanGame.isInWord 0
+label IF_FALSE0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function HangmanGame.removeLetter 1
 push argument 0
 pop pointer 0
 push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push this 1
+call String.length 1
+lt
+not
+if-goto WHILE_END0
+push argument 1
+push this 1
+push local 0
+call String.charAt 2
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 1
+push local 0
+call String.doubleQuote 0
+call String.setCharAt 3
+pop temp 0
+label IF_FALSE0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push pointer 0
+call HangmanGame.drawRemainingLetters 1
+pop temp 0
+push constant 0
 return
-function HangmanGame.revealLetter 0
+function HangmanGame.isInWord 1
 push argument 0
 pop pointer 0
 push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push this 2
+call String.length 1
+lt
+not
+if-goto WHILE_END0
+push argument 1
+push this 2
+push local 0
+call String.charAt 2
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
 return
-function HangmanGame.removeLetter 0
+label IF_FALSE0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function HangmanGame.revealLetter 1
 push argument 0
 pop pointer 0
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push this 2
+call String.length 1
+lt
+not
+if-goto WHILE_END0
+push argument 1
+push this 2
+push local 0
+call String.charAt 2
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 17
+push constant 28
+push local 0
+push constant 4
+call Math.multiply 2
+add
+call Output.moveCursor 2
+pop temp 0
+push argument 1
+call Output.printChar 1
+pop temp 0
+label IF_FALSE0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
 push constant 0
 return
 function HangmanGame.dispose 0
@@ -325,7 +440,7 @@ push constant 0
 pop local 2
 push constant 0
 pop local 3
-push constant 15
+push constant 16
 pop local 4
 label WHILE_EXP0
 push local 2
