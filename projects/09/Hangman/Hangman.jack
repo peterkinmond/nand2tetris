@@ -1,0 +1,34 @@
+class Hangman {
+  field int bodyCenterX;
+
+  constructor Hangman new() {
+    let bodyCenterX = 150;
+    do drawHangingMan();
+    return this;
+  }
+
+  method void drawHangingMan() {
+    // Draw hanging man (will be drawn one piece at a time during gameplay)
+
+    do Screen.drawCircle(bodyCenterX, 140, 20); // Head
+    do Screen.setColor(false);
+    do Screen.drawCircle(bodyCenterX, 140, 18); 
+
+    do Screen.setColor(true); // Face
+    // TODO: Draw eyes and mouth
+
+    do Screen.drawLine(bodyCenterX, 160, bodyCenterX, 200); // Body
+    do Screen.drawLine(bodyCenterX - 30, 180, bodyCenterX, 180); // Left arm
+    do Screen.drawLine(bodyCenterX, 180, bodyCenterX + 30, 180); // Right arm
+    do Screen.drawLine(bodyCenterX - 30, 230, bodyCenterX, 200); // Left leg
+    do Screen.drawLine(bodyCenterX, 200, bodyCenterX + 30, 230); // Right leg
+
+    return;
+  }
+
+  /** User guessed wrong letter - add part to body */
+  method void addPart() {
+    // TODO: Implement
+    return;
+  }
+}

@@ -1,38 +1,177 @@
 function HangmanGame.new 0
-push constant 1
+push constant 4
 call Memory.alloc 1
 pop pointer 0
 push pointer 0
-call HangmanGame.initializeScreen 1
+call HangmanGame.pickHiddenWord 1
 pop temp 0
 push pointer 0
+call HangmanGame.initializeScreen 1
+pop temp 0
+call Hangman.new 0
+pop this 0
+push pointer 0
+return
+function HangmanGame.pickHiddenWord 0
+push argument 0
+pop pointer 0
+push constant 9
+call String.new 1
+pop this 2
+push constant 9
+call String.new 1
+push constant 70
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 66
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 82
+call String.appendChar 2
+push constant 66
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 90
+call String.appendChar 2
+pop this 2
+push constant 0
 return
 function HangmanGame.initializeScreen 0
 push argument 0
 pop pointer 0
 push pointer 0
-call HangmanGame.drawHangingStructure 1
-pop temp 0
-push pointer 0
-call HangmanGame.drawHangingMan 1
+call HangmanGame.drawGallows 1
 pop temp 0
 push pointer 0
 call HangmanGame.initializeLetters 1
-pop temp 0
-push this 0
-push constant 2
-call String.doubleQuote 0
-call String.setCharAt 3
-pop temp 0
-push pointer 0
-call HangmanGame.drawRemainingLetters 1
 pop temp 0
 push pointer 0
 call HangmanGame.drawBlanksForWord 1
 pop temp 0
 push constant 0
 return
-function HangmanGame.run 0
+function HangmanGame.run 2
+push argument 0
+pop pointer 0
+push constant 0
+pop local 1
+label WHILE_EXP0
+push local 1
+not
+not
+if-goto WHILE_END0
+label WHILE_EXP1
+push local 0
+push constant 0
+eq
+not
+if-goto WHILE_END1
+call Keyboard.keyPressed 0
+pop local 0
+goto WHILE_EXP1
+label WHILE_END1
+push local 0
+push constant 64
+gt
+push local 0
+push constant 91
+lt
+and
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push pointer 0
+push local 0
+call HangmanGame.handleGuessedLetter 2
+pop temp 0
+label IF_FALSE0
+push local 0
+push constant 96
+gt
+push local 0
+push constant 123
+lt
+and
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 0
+push constant 32
+sub
+pop local 0
+push pointer 0
+push local 0
+call HangmanGame.handleGuessedLetter 2
+pop temp 0
+label IF_FALSE1
+label WHILE_EXP2
+push local 0
+push constant 0
+eq
+not
+not
+if-goto WHILE_END2
+call Keyboard.keyPressed 0
+pop local 0
+goto WHILE_EXP2
+label WHILE_END2
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function HangmanGame.handleGuessedLetter 0
+push argument 0
+pop pointer 0
+push pointer 0
+push argument 1
+call HangmanGame.isInRemainingLetters 2
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push pointer 0
+push argument 1
+call HangmanGame.removeLetter 2
+pop temp 0
+push pointer 0
+push argument 1
+call HangmanGame.isInWord 2
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push pointer 0
+push argument 1
+call HangmanGame.revealLetter 2
+pop temp 0
+goto IF_END1
+label IF_FALSE1
+push this 0
+call Hangman.addPart 1
+pop temp 0
+label IF_END1
+label IF_FALSE0
+push constant 0
+return
+function HangmanGame.isInRemainingLetters 0
+push argument 0
+pop pointer 0
+push constant 0
+return
+function HangmanGame.isInWord 0
+push argument 0
+pop pointer 0
+push constant 0
+return
+function HangmanGame.revealLetter 0
+push argument 0
+pop pointer 0
+push constant 0
+return
+function HangmanGame.removeLetter 0
 push argument 0
 pop pointer 0
 push constant 0
@@ -45,7 +184,7 @@ call Memory.deAlloc 1
 pop temp 0
 push constant 0
 return
-function HangmanGame.drawHangingStructure 0
+function HangmanGame.drawGallows 0
 push argument 0
 pop pointer 0
 push constant 20
@@ -74,68 +213,6 @@ call Screen.drawLine 4
 pop temp 0
 push constant 0
 return
-function HangmanGame.drawHangingMan 1
-push argument 0
-pop pointer 0
-push constant 150
-pop local 0
-push local 0
-push constant 140
-push constant 20
-call Screen.drawCircle 3
-pop temp 0
-push constant 0
-call Screen.setColor 1
-pop temp 0
-push local 0
-push constant 140
-push constant 18
-call Screen.drawCircle 3
-pop temp 0
-push constant 0
-not
-call Screen.setColor 1
-pop temp 0
-push local 0
-push constant 160
-push local 0
-push constant 200
-call Screen.drawLine 4
-pop temp 0
-push local 0
-push constant 30
-sub
-push constant 180
-push local 0
-push constant 180
-call Screen.drawLine 4
-pop temp 0
-push local 0
-push constant 180
-push local 0
-push constant 30
-add
-push constant 180
-call Screen.drawLine 4
-pop temp 0
-push local 0
-push constant 30
-sub
-push constant 230
-push local 0
-push constant 200
-call Screen.drawLine 4
-pop temp 0
-push local 0
-push constant 200
-push local 0
-push constant 30
-add
-push constant 230
-call Screen.drawLine 4
-pop temp 0
-push constant 0
-return
 function HangmanGame.drawRemainingLetters 1
 push argument 0
 pop pointer 0
@@ -147,12 +224,12 @@ call Output.moveCursor 2
 pop temp 0
 label WHILE_EXP0
 push local 0
-push this 0
+push this 1
 call String.length 1
 lt
 not
 if-goto WHILE_END0
-push this 0
+push this 1
 push local 0
 call String.charAt 2
 call Output.printChar 1
@@ -176,7 +253,7 @@ push argument 0
 pop pointer 0
 push constant 26
 call String.new 1
-pop this 0
+pop this 1
 push constant 26
 call String.new 1
 push constant 65
@@ -231,43 +308,19 @@ push constant 89
 call String.appendChar 2
 push constant 90
 call String.appendChar 2
-pop this 0
+pop this 1
 push pointer 0
 call HangmanGame.drawRemainingLetters 1
 pop temp 0
 push constant 0
 return
-function HangmanGame.drawBlanksForWord 6
+function HangmanGame.drawBlanksForWord 5
 push argument 0
 pop pointer 0
-push constant 250
+push constant 220
 pop local 0
 push constant 200
 pop local 1
-push constant 9
-call String.new 1
-pop local 5
-push constant 9
-call String.new 1
-push constant 70
-call String.appendChar 2
-push constant 79
-call String.appendChar 2
-push constant 79
-call String.appendChar 2
-push constant 66
-call String.appendChar 2
-push constant 65
-call String.appendChar 2
-push constant 82
-call String.appendChar 2
-push constant 66
-call String.appendChar 2
-push constant 65
-call String.appendChar 2
-push constant 90
-call String.appendChar 2
-pop local 5
 push constant 0
 pop local 2
 push constant 0
@@ -276,7 +329,7 @@ push constant 15
 pop local 4
 label WHILE_EXP0
 push local 2
-push local 5
+push this 2
 call String.length 1
 lt
 not
