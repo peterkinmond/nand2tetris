@@ -97,7 +97,6 @@ class HangmanGame {
 
   /** Disposes this game. */
   method void dispose() {
-    // TODO: Implement
     do Memory.deAlloc(this);
     return;
   }
