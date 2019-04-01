@@ -122,12 +122,12 @@ pop this 2
 push pointer 0
 call Hangman.drawNextBodyPart 1
 pop temp 0
+push constant 0
+return
+function Hangman.allPartsDrawn 0
+push argument 0
+pop pointer 0
 push this 2
 push this 1
 eq
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
-label IF_FALSE0
-push constant 0
 return

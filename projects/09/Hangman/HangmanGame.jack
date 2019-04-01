@@ -3,9 +3,11 @@ class HangmanGame {
   field String remainingLetters; // Letters not yet guessed
   field String word; // Word the player must guess
   field char currentLetter; // Currently guessed letter
+  field boolean activeGame; // Game finishes when won or lost
 
   /** Constructs a new Hangman Game. */
   constructor HangmanGame new() {
+    let activeGame = true;
     do pickHiddenWord();
     do initializeScreen();
     let hangman = Hangman.new();
@@ -31,10 +33,8 @@ class HangmanGame {
   the hidden word. */
   method void run() {
     var char key; // The key currently pressed by the player
-    var boolean exit;
-    let exit = false;
 
-    while (~exit) {
+    while (activeGame) {
       // Waits for a key to be pressed
       while (key = 0) {
         let key = Keyboard.keyPressed();
@@ -43,6 +43,7 @@ class HangmanGame {
       // TODO: Make it work for capital letters
       if ((key > 64) & (key < 91)) { // A-Z (ASCII values: 65-90)
         let currentLetter = key; // TODO: Use or remove
+        do printOutputForPlayer("You guessed a letter");
         do handleGuessedLetter(key);
       }
 
@@ -67,6 +68,10 @@ class HangmanGame {
       }
       else {
         do hangman.addPart();
+        if (hangman.allPartsDrawn()) { // Game over - player lost
+          do printOutputForPlayer("Game over - you lost");
+          let activeGame = false;
+        }
       }
     }
     return;
@@ -123,9 +128,9 @@ class HangmanGame {
 
     while (i < word.length()) {
       if (letter = word.charAt(i)) {
-        // Move cursor to correct spot to write over line
-        // corresponding to letter. The lines are drawn with an 
-        // (x, y) pixel system and the letters are printed with an
+        // Move cursor to correct spot to write over blank
+        // corresponding to letter. The lines are drawn with a 
+        // (x, y) pixel system and the letters are printed with a
         // (row, column) grid system so we need to bridge the 2 
         // systems.
         do Output.moveCursor(17, 28 + (i * 4));
@@ -194,6 +199,12 @@ class HangmanGame {
       let offset = offset + (width * 2); // Width plus spacing
     }
 
+    return;
+  }
+
+  method void printOutputForPlayer(String output) {
+    do Output.moveCursor(3, 6); // Place just below remaining letters
+    do Output.printString(output);
     return;
   }
 }

@@ -49,10 +49,10 @@ class Hangman {
   method void addPart() {
     let currentWrong = currentWrong + 1;
     do drawNextBodyPart();
-    if (currentWrong = maxWrong) {
-      // TODO: Implement
-    }
-
     return;
+  }
+
+  method boolean allPartsDrawn() {
+    return currentWrong = maxWrong;
   }
 }
