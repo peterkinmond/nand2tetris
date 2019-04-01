@@ -2,6 +2,7 @@ class HangmanGame {
   field Hangman hangman; // The figure that tracks missed guesses
   field String remainingLetters; // Letters not yet guessed
   field String word; // Word the player must guess
+  field int remainingLettersInWord; // How many letters does player still need to guess
   field char currentLetter; // Currently guessed letter
   field boolean activeGame; // Game finishes when won or lost
 
@@ -18,6 +19,7 @@ class HangmanGame {
     // TODO: Pick word from list dynamically
     let word = String.new(9);
     let word = "FOOBARBAZ";
+    let remainingLettersInWord = word.length();
     return;
   }
 
@@ -65,10 +67,14 @@ class HangmanGame {
 
       if (isInWord(letter)) {
         do revealLetter(letter);
+        if (remainingLettersInWord = 0) { // Player won
+          do printOutputForPlayer("Congratulations! You won!");
+          let activeGame = false;
+        }
       }
       else {
         do hangman.addPart();
-        if (hangman.allPartsDrawn()) { // Game over - player lost
+        if (hangman.allPartsDrawn()) { // Player lost
           do printOutputForPlayer("Game over - you lost");
           let activeGame = false;
         }
@@ -135,6 +141,7 @@ class HangmanGame {
         // systems.
         do Output.moveCursor(17, 28 + (i * 4));
         do Output.printChar(letter);
+        let remainingLettersInWord = remainingLettersInWord - 1;
       }
       let i = i + 1;
     }
