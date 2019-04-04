@@ -1,10 +1,11 @@
 class Hangman {
-  field int bodyCenterX; // Used to position body parts
+  field int bodyCenterX, headCenterY; // Used to position body parts
   // Track number of incorrect guesses
   field int maxWrong, currentWrong;
   
   constructor Hangman new() {
     let bodyCenterX = 150;
+    let headCenterY = 110;
     let maxWrong = 6; // TODO: Make this higher?
     let currentWrong = 0; // Start fresh
     return this;
@@ -16,30 +17,30 @@ class Hangman {
     // TODO: Include eyes and mouth? Other parts?
 
     if (currentWrong = 1) {
-      do Screen.drawCircle(bodyCenterX, 140, 20); // Head
+      do Screen.drawCircle(bodyCenterX, headCenterY, 20); // Head
       do Screen.setColor(false);
-      do Screen.drawCircle(bodyCenterX, 140, 18); 
+      do Screen.drawCircle(bodyCenterX, headCenterY, 18); 
       do Screen.setColor(true); // Face
     }
 
     if (currentWrong = 2) {
-      do Screen.drawLine(bodyCenterX, 160, bodyCenterX, 200); // Body
+      do Screen.drawLine(bodyCenterX, headCenterY + 20, bodyCenterX, headCenterY + 60); // Body
     }
 
     if (currentWrong = 3) {
-      do Screen.drawLine(bodyCenterX - 30, 180, bodyCenterX, 180); // Left arm
+      do Screen.drawLine(bodyCenterX - 30, headCenterY + 40, bodyCenterX, headCenterY + 40); // Left arm
     }
 
     if (currentWrong = 4) {
-      do Screen.drawLine(bodyCenterX, 180, bodyCenterX + 30, 180); // Right arm
+      do Screen.drawLine(bodyCenterX, headCenterY + 40, bodyCenterX + 30, headCenterY + 40); // Right arm
     }
 
     if (currentWrong = 5) {
-      do Screen.drawLine(bodyCenterX - 30, 230, bodyCenterX, 200); // Left leg
+      do Screen.drawLine(bodyCenterX - 30, headCenterY + 90, bodyCenterX, headCenterY + 60); // Left leg
     }
 
     if (currentWrong = 6) {
-      do Screen.drawLine(bodyCenterX, 200, bodyCenterX + 30, 230); // Right leg
+      do Screen.drawLine(bodyCenterX, headCenterY + 60, bodyCenterX + 30, headCenterY + 90); // Right leg
     }
 
     return;

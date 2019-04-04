@@ -27,6 +27,7 @@ class HangmanGame {
     do drawGallows();
     do initializeLetters();
     do drawBlanksForWord();
+    do printOutputForPlayer("Welcome to Hangman - guess any letter");
     return;
   }
 
@@ -151,11 +152,14 @@ class HangmanGame {
   }
 
   method void drawGallows() {
-    // TODO: Make these values dynamic - height, width, startingX, startingY
-    do Screen.drawRectangle(20, 200, 80, 240);
-    do Screen.drawLine(50, 200, 50, 100);
-    do Screen.drawLine(50, 100, 150, 100);
-    do Screen.drawLine(150, 100, 150, 130);
+    do Screen.drawRectangle(20, 239, 80, 241); // Base
+    do Screen.drawRectangle(49, 70, 51, 240); 
+    do Screen.drawRectangle(50, 69, 150, 71); 
+    do Screen.drawRectangle(149, 70, 151, 100);
+    // Draw support beam
+    do Screen.drawLine(50, 99, 80, 69);
+    do Screen.drawLine(50, 100, 80, 70);
+    do Screen.drawLine(50, 101, 80, 71);
 
     return;
   }
@@ -206,7 +210,12 @@ class HangmanGame {
   }
 
   method void printOutputForPlayer(String output) {
-    do Output.moveCursor(3, 6); // Place just below remaining letters
+    var int outputRow, outputCol; // Where output will show up
+    let outputRow = 3; // Place output just below remainging letters
+    let outputCol = 6;
+    do Output.moveCursor(outputRow, outputCol);
+    do Output.printString("                                     "); // Clear the previous output
+    do Output.moveCursor(outputRow, outputCol);
     do Output.printString(output);
     return;
   }
