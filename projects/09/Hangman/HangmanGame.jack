@@ -3,7 +3,6 @@ class HangmanGame {
   field String remainingLetters; // Letters not yet guessed
   field String word; // Word the player must guess
   field int remainingLettersInWord; // How many letters does player still need to guess
-  field char currentLetter; // Currently guessed letter
   field boolean activeGame; // Game finishes when won or lost
 
   /** Constructs a new Hangman Game. */
@@ -42,15 +41,13 @@ class HangmanGame {
         let key = Keyboard.keyPressed();
       }
 
-      // TODO: Make it work for capital letters
       if ((key > 64) & (key < 91)) { // A-Z (ASCII values: 65-90)
-        let currentLetter = key; // TODO: Use or remove
         do printOutputForPlayer("You guessed a letter");
         do handleGuessedLetter(key);
       }
 
       if ((key > 96) & (key < 123)) { // a-z (ASCII values: 97-122)
-        // TODO: Do we need this? Keyboard input is uppercase only it seems
+        // TODO: Do we need this? Keyboard input seems to be all uppercase
       }
 
       // Waits for the key to be released
@@ -104,8 +101,7 @@ class HangmanGame {
 
     while (i < remainingLetters.length()) {
       if (letter = remainingLetters.charAt(i)) {
-        // TODO: Replace guessed letters with special char?
-        do remainingLetters.setCharAt(i, String.doubleQuote());
+        do remainingLetters.setCharAt(i, 126);
       }
       let i = i + 1;
     }
