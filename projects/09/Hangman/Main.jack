@@ -9,7 +9,7 @@ class Main {
   }
 
   /** Generate seed value for random number generator
-  by incrementing a counter while we wait for user to
+  by incrementing a counter while waiting for user to
   start the game. */
   function int generateSeedValue() {
     var int timeCounter;

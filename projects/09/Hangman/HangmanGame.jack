@@ -1,3 +1,4 @@
+/** Handles game mechanics for Hangman. */
 class HangmanGame {
   field Hangman hangman; // The figure that tracks missed guesses
   field String remainingLetters; // Letters not yet guessed
@@ -15,6 +16,7 @@ class HangmanGame {
     return this;
   }
 
+  /** Pick the hidden word which the player will guess */
   method void pickHiddenWord(int seedValue) {
     var Array words;
     var int numOfWords;
@@ -72,6 +74,8 @@ class HangmanGame {
     return;
   }
 
+  /** Determine if guessed letter is correct or not and then update game
+  accordingly */
   method void handleGuessedLetter(char letter) {
     if (isInRemainingLetters(letter)) { // Only handle unguessed letters
       do removeLetter(letter);
@@ -164,6 +168,7 @@ class HangmanGame {
     return;
   }
 
+  /** Draw the gallows, where the hangman figure will hang */
   method void drawGallows() {
     do Screen.drawRectangle(20, 239, 80, 241); // Base
     do Screen.drawRectangle(49, 70, 51, 240); 
@@ -177,7 +182,7 @@ class HangmanGame {
     return;
   }
 
-  // Draw remainingLetters (will have 1 letter at a time disappear)
+  /** Draw remainingLetters (will have 1 letter at a time disappear) */
   method void drawRemainingLetters() {
     var int i;
     let i = 0;
@@ -201,6 +206,7 @@ class HangmanGame {
     return;
   }
 
+  /** Draw a blank line to represent each letter in hidden word */
   method void drawBlanksForWord() {
     var int wordX, wordY;
     var int i, offset, width;
@@ -222,6 +228,7 @@ class HangmanGame {
     return;
   }
 
+  /** Print output messages for player */
   method void printOutputForPlayer(String output) {
     var int outputRow, outputCol; // Where output will show up
     let outputRow = 3; // Place output just below remainging letters

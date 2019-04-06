@@ -1,3 +1,4 @@
+/** Draws a hangman figure as player guesses incorrectly */
 class Hangman {
   field int bodyCenterX, headCenterY; // Used to position body parts
   // Track number of incorrect guesses
@@ -6,15 +7,13 @@ class Hangman {
   constructor Hangman new() {
     let bodyCenterX = 150;
     let headCenterY = 110;
-    let maxWrong = 6; // TODO: Make this higher?
+    let maxWrong = 6;
     let currentWrong = 0; // Start fresh
     return this;
   }
 
   /** Draw one part of hanging man */
   method void drawNextBodyPart() {
-
-    // TODO: Include eyes and mouth? Other parts?
 
     if (currentWrong = 1) {
       do Screen.drawCircle(bodyCenterX, headCenterY, 20); // Head
