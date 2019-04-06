@@ -1,8 +1,39 @@
 /** Initializes a new Hangman game and starts running it. */
 class Main {
+
   function void main() {
+    var int seedValue;
+    let seedValue = Main.generateSeedValue();
+    do Main.startNewGame(seedValue);
+    return;
+  }
+
+  /** Generate seed value for random number generator
+  by incrementing a counter while we wait for user to
+  start the game. */
+  function int generateSeedValue() {
+    var int timeCounter;
+    var boolean returnButtonPressed;
+    var char key;
+    let timeCounter = 0;
+    let returnButtonPressed = false;
+    do Output.moveCursor(10, 6); // Screen has 23 cursor rows 
+    do Output.printString("Welcome to Hangman. Press return to play new game");
+
+    while (~(returnButtonPressed)) {
+      let timeCounter = timeCounter + 1;
+      let key = Keyboard.keyPressed();
+
+      if (key = 128) { // return button
+        let returnButtonPressed = true;
+      }
+    }
+    return timeCounter;
+  }
+
+  function void startNewGame(int seedValue) {
     var HangmanGame game;
-    let game = HangmanGame.new();
+    let game = HangmanGame.new(seedValue);
     do game.run();
     do game.dispose();
     return;

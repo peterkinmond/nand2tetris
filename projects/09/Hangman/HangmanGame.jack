@@ -6,18 +6,31 @@ class HangmanGame {
   field boolean activeGame; // Game finishes when won or lost
 
   /** Constructs a new Hangman Game. */
-  constructor HangmanGame new() {
+  constructor HangmanGame new(int seedValue) {
+    do Screen.clearScreen();
     let activeGame = true;
-    do pickHiddenWord();
+    do pickHiddenWord(seedValue);
     do initializeScreen();
     let hangman = Hangman.new();
     return this;
   }
 
-  method void pickHiddenWord() {
-    // TODO: Pick word from list dynamically
-    let word = String.new(9);
-    let word = "FOOBARBAZ";
+  method void pickHiddenWord(int seedValue) {
+    var Array words;
+    var int numOfWords;
+    let numOfWords = 27;
+    let words = Array.new(numOfWords);
+    let words[0] = "ACCOUNT"; let words[1] = "AGAINST"; let words[2] = "ANSWER";
+    let words[3] = "BALANCE"; let words[4] = "BEAUTIFUL"; let words[5] = "BITTER";
+    let words[6] = "CHEMICAL"; let words[7] = "DELICATE"; let words[8] = "FERTILE";
+    let words[9] = "HOSPITAL"; let words[10] = "IMPULSE"; let words[11] = "JEWEL";
+    let words[12] = "KETTLE"; let words[13] = "LOOSE"; let words[14] = "MANAGER";
+    let words[15] = "MATERIAL"; let words[16] = "ORANGE"; let words[17] = "PAST";
+    let words[18] = "PHYSICAL"; let words[19] = "QUALITY"; let words[20] = "REGRET";
+    let words[21] = "RHYTHM"; let words[22] = "SCIENCE"; let words[23] = "SPONGE";
+    let words[24] = "THEORY"; let words[25] = "VESSEL"; let words[26] = "WHILE";
+    do Random.setSeed(seedValue);
+    let word = words[Random.randRange(numOfWords)];
     let remainingLettersInWord = word.length();
     return;
   }
