@@ -10,11 +10,6 @@ class JackTokenizerTest(unittest.TestCase):
         self.assertTrue(tokenizer.is_identifier('_abc123'))
 
     def test_tokenizer(self):
-        # CLASS TO TEST:
-        # class A{
-        #   let x = -4;
-        #  do Output.printString("Huzzah!");
-        # }
         tokenizer = JackTokenizer.JackTokenizer("test.jack")
         tokenizer.has_more_tokens()
         tokenizer.advance()

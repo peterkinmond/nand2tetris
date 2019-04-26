@@ -16,18 +16,24 @@ class JackTokenizer:
     def __init__(self, input_file):
         """Opens the input .jack file and gets ready to tokenize it"""
         text = open(input_file, 'r').read()
-        # TODO: How to handle single-line comments if we kill newlines? Probably need to bring them back
-        # Since tokens are independent of white space, we
-        # treat code file as one long string - convert newlines to spaces
-        self.text = text.replace('\r', '').replace('\n', ' ')
+        self.text = self.remove_comments(text)
 
         self.pos = 0 # Current position within text
         self.current_char = self.text[self.pos]
         self.current_token = ""
 
+    def remove_comments(self, text):
+        # Delete single-line style comments (// ...)
+        text = re.sub("//.*\n", '', text)
+        # Remove newlines
+        text = text.replace('\r', '').replace('\n', ' ')
+        # Delete multi-line style comments (/*  */)
+        text = re.sub("/\*.*\*/", '', text)
+
+        return text
+
     def has_more_tokens(self):
         """Are there more tokens in the input?"""
-        # TODO: Ignore comments, both single line and multi-line
         if self.text[self.pos] != " ":
             return True
 
