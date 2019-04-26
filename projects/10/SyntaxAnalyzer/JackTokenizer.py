@@ -1,4 +1,5 @@
 import re
+from Constants import *
 
 KEYWORDS = ['class', 'constructor', 'function', 'method',
     'field', 'static', 'var', 'int', 'char', 'boolean',
@@ -72,15 +73,15 @@ class JackTokenizer:
     def token_type(self):
         """Returns the type of the current token as a constant."""
         if self.current_token in KEYWORDS:
-            return 'keyword'
+            return KEYWORD
         elif self.current_token in SYMBOLS:
-            return 'symbol'
+            return SYMBOL
         elif self.is_identifier(self.current_token):
-            return 'identifier'
+            return IDENTIFIER
         elif self.current_token.isdigit():
-            return 'integer_constant'
+            return INT_CONST
         elif self.current_token.startswith('"') and self.current_token.endswith('"'):
-            return 'string_constant'
+            return STRING_CONST
         else:
             return "Error: token type not found for token '{}'".format(self.current_token)
 
