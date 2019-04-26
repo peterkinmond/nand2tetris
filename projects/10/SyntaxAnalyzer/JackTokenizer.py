@@ -1,13 +1,6 @@
 import re
 from Constants import *
 
-KEYWORDS = ['class', 'constructor', 'function', 'method',
-    'field', 'static', 'var', 'int', 'char', 'boolean',
-    'void', 'true', 'false', 'null', 'this', 'let', 'do',
-    'if', 'else', 'while', 'return']
-SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
-    '/', '&', '|', '<', '>', '=', '~']
-
 class JackTokenizer:
     """Ignores all comments and white space in the input stream, and
     serializes it into Jack-language tokens. The token types are specified
@@ -100,28 +93,28 @@ class JackTokenizer:
 
         This method should be called only if token_type is KEYWORD.
         """
-        pass
+        return self.current_token
 
     def symbol(self):
         """Returns the character which is the current token.
 
         This method should be called only if token_type is SYMBOL.
         """
-        pass
+        return self.current_token
 
     def identifier(self):
         """Returns the identifier which is the current token.
 
         This method should be called only if token_type is IDENTIFIER.
         """
-        pass
+        return self.current_token
 
     def int_val(self):
         """Returns the int value of the current token.
 
         This method should be called only if token_type is INT_CONST.
         """
-        pass
+        return int(self.current_token)
 
     def string_val(self):
         """Returns the string value of the current token, without the
@@ -129,4 +122,4 @@ class JackTokenizer:
 
         This method should be called only if token_type is STRING_CONST.
         """
-        pass
+        return self.current_token.replace('"','')
