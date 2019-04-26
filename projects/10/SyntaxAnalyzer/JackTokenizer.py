@@ -1,5 +1,12 @@
 import re
 
+KEYWORDS = ['class', 'constructor', 'function', 'method',
+    'field', 'static', 'var', 'int', 'char', 'boolean',
+    'void', 'true', 'false', 'null', 'this', 'let', 'do',
+    'if', 'else', 'while', 'return']
+SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
+    '/', '&', '|', '<', '>', '=', '~']
+
 class JackTokenizer:
     """Ignores all comments and white space in the input stream, and
     serializes it into Jack-language tokens. The token types are specified
@@ -38,29 +45,36 @@ class JackTokenizer:
         This method should be called only if has_more_tokens is true.
         Initially there is no current token.
         """
-        self.current_token = ""
+        self.current_token = self.text[self.pos]
 
-        while self.text[self.pos] != " ":
+        if self.current_token in SYMBOLS: # Symbols are all 1 char so we're done
+            self.pos += 1 # Move past current token
+            return
+
+        # There are valid cases of 2 tokens "touching" (no white space separation)
+        # but they always involve symbols, which need to be treated somewhat
+        # specially for that reason. If the next char would "change" a token type,
+        # then exit the method since the next char should be a separate token.
+        # let x =4; (symbol + identifier + symbol)
+        while self.text[self.pos + 1] != " " and self.text[self.pos + 1] not in SYMBOLS:
+            self.pos += 1
             self.current_char = self.text[self.pos]
             self.current_token += self.current_char
-            self.pos += 1
+
+        self.pos += 1 # Move past current token
 
     def token_type(self):
         """Returns the type of the current token as a constant."""
-        keywords = ['class', 'constructor', 'function', 'method',
-            'field', 'static', 'var', 'int', 'char', 'boolean',
-            'void', 'true', 'false', 'null', 'this', 'let', 'do',
-            'if', 'else', 'while', 'return']
-
-        symbols = ['{', '}', '(', ')', '[', ']', '. ', ', ', '; ', '+', '-', '*',
-            '/', '&', '|', '<', '>', '=', '~']
-
-        if self.current_token in keywords:
+        if self.current_token in KEYWORDS:
             return 'keyword'
-        elif self.current_token in symbols:
+        elif self.current_token in SYMBOLS:
             return 'symbol'
         elif self.is_identifier(self.current_token):
             return 'identifier'
+        elif self.current_token.isdigit():
+            return 'integer_constant'
+        elif self.current_token.startswith('"') and self.current_token.endswith('"'):
+            return 'string_constant'
         else:
             return "Error: token type not found for token '{}'".format(self.current_token)
 

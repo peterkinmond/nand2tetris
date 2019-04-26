@@ -1,2 +1,4 @@
-class A {
+class A{
+  let x = -4;
+  do Output.printString("Huzzah!");
 }
