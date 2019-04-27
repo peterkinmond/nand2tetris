@@ -31,7 +31,7 @@ class JackTokenizer:
         if self.text[self.pos] != " ":
             return True
 
-        while self.pos < len(self.text):
+        while self.pos < (len(self.text) - 1):
             self.pos += 1
             self.current_char = self.text[self.pos]
             if self.current_char != " ":
@@ -100,6 +100,7 @@ class JackTokenizer:
 
         This method should be called only if token_type is SYMBOL.
         """
+        # TODO: Convert <, >, ", and & to &lt;, &gt;, &quot;, &amp;
         return self.current_token
 
     def identifier(self):
