@@ -19,9 +19,9 @@ class CompilationEngine(object):
         class: 'class' className '{' classVarDec* subroutineDec* '}'
         """
         self.output.append('<class>') # output <class>
-        self.handle_keyword() # 'class'
-        self.handle_identifier() # className
-        self.handle_symbol() # '{'
+        self._handle_keyword() # 'class'
+        self._handle_identifier() # className
+        self._handle_symbol() # '{'
 
         # TODO: How to handle multiple classVarDecs? How to handle 0?
         # classVarDec*
@@ -30,21 +30,8 @@ class CompilationEngine(object):
         # subroutineDec*
         self.compile_subroutine_dec()
 
-        self.handle_symbol() # '}'
+        self._handle_symbol() # '}'
         self.output.append('</class>') # output </class>
-
-
-    def handle_keyword(self):
-        self.tokenizer.advance()
-        self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
-
-    def handle_identifier(self):
-        self.tokenizer.advance()
-        self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
-
-    def handle_symbol(self):
-        self.tokenizer.advance()
-        self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
 
     def compile_class_var_dec(self):
         """Compiles a static variable declaration,
@@ -78,7 +65,12 @@ class CompilationEngine(object):
         """Compiles a var declaration.
         varDec: 'var' type varName (',' varName)* ';'
         """
-        pass
+        self.output.append('<varDec>') # output <varDec>
+        self._handle_keyword() # 'var'
+        self._handle_keyword() # type
+        self._handle_identifier() # varName
+        self._handle_symbol() # ';'
+        self.output.append('</varDec>') # output <varDec>
 
     def compile_statements(self):
         """Compiles a sequence of statements.
@@ -92,17 +84,15 @@ class CompilationEngine(object):
         letStatement: 'let' varName('[' expression ']')? '=' expression ';'
         """
         self.output.append('<letStatement>') # output <letStatement>
-        self.handle_keyword() # 'let'
-        self.handle_identifier() # varName
-        self.handle_symbol() # '='
+        self._handle_keyword() # 'let'
+        self._handle_identifier() # varName
+        self._handle_symbol() # '='
 
         # expression
         self.compile_expression()
 
-        self.handle_symbol() # ';'
+        self._handle_symbol() # ';'
         self.output.append('</letStatement>') # output </letStatement>
-
-
 
     def compile_if(self):
         """Compiles a if statement.
@@ -128,15 +118,14 @@ class CompilationEngine(object):
         returnStatement: 'return' expression? ';'
         """
         self.output.append('<returnStatement>') # output <returnStatement>
-        self.handle_keyword() # 'return'
+        self._handle_keyword() # 'return'
 
-        # TODO: handle optional expression. How to do?
-        # Do conditional here or handle in compile_expression method?
-        #self.tokenizer.advance()
-        #if (self.tokenizer.token_type != SYMBOL):
-        #    self.compile_expression()
+        # TODO: Create 'peek' method in tokenizer
+        #if (self.tokenizer.peek() != SYMBOL):
+        if (self.tokenizer.text[self.tokenizer.pos + 1] not in SYMBOLS):
+            self.compile_expression()
 
-        self.handle_symbol() # ';'
+        self._handle_symbol() # ';'
         self.output.append('</returnStatement>') # output </returnStatement>
 
     def compile_expression(self):
@@ -162,7 +151,11 @@ class CompilationEngine(object):
         self.output.append('<term>') # output <term>
         # TODO: handle all types
         self.tokenizer.advance()
-        self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.identifier()))
+        token = self.tokenizer.token_type()
+        if token == INT_CONST:
+            self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
+        elif token == KEYWORD:
+            self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
         self.output.append('</term>') # output </term>
 
     def compile_expression_list(self):
@@ -170,3 +163,15 @@ class CompilationEngine(object):
         expressionList: (expression (','expression)* )?
         """
         pass
+
+    def _handle_keyword(self):
+        self.tokenizer.advance()
+        self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+
+    def _handle_identifier(self):
+        self.tokenizer.advance()
+        self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
+
+    def _handle_symbol(self):
+        self.tokenizer.advance()
+        self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
