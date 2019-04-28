@@ -7,9 +7,12 @@ class JackTokenizer:
     according to the Jack grammar.
     """
 
-    def __init__(self, input_file):
+    def __init__(self, input_file, use_text_as_input=False):
         """Opens the input .jack file and gets ready to tokenize it"""
-        text = open(input_file, 'r').read()
+        if (use_text_as_input): # Used for testing, pass in a string as input
+            text = input_file
+        else:
+            text = open(input_file, 'r').read()
         self.text = self.remove_comments(text)
 
         self.pos = 0 # Current position within text
@@ -28,9 +31,11 @@ class JackTokenizer:
 
     def has_more_tokens(self):
         """Are there more tokens in the input?"""
-        if self.text[self.pos] != " ":
+        # Special case for when tokenizer starts - may already be on a token
+        if (self.pos == 0) and self.text[self.pos] != " ":
             return True
 
+        # Otherwise try to find a non-white space char (which indicates a token)
         while self.pos < (len(self.text) - 1):
             self.pos += 1
             self.current_char = self.text[self.pos]
@@ -45,10 +50,12 @@ class JackTokenizer:
         This method should be called only if has_more_tokens is true.
         Initially there is no current token.
         """
+        if (self.has_more_tokens() == False):
+            raise Exception("File has no more tokens - can't advance")
+
         self.current_token = self.text[self.pos]
 
         if self.current_token in SYMBOLS: # Symbols are all 1 char so we're done
-            self.pos += 1 # Move past current token
             return
 
         # There are valid cases of 2 tokens "touching" (no white space separation)
@@ -60,8 +67,6 @@ class JackTokenizer:
             self.pos += 1
             self.current_char = self.text[self.pos]
             self.current_token += self.current_char
-
-        self.pos += 1 # Move past current token
 
     def token_type(self):
         """Returns the type of the current token as a constant."""
