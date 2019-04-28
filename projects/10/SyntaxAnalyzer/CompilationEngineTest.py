@@ -13,6 +13,30 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> } </symbol>',
             '</class>'])
 
+    def test_compile_class_var_dec(self):
+        engine = CompilationEngine("field int direction;", "fakeOutputFile", True)
+        engine.compile_class_var_dec()
+        self.assertEqual(engine.output, [
+            '<classVarDec>',
+                '<keyword> field </keyword>',
+                '<keyword> int </keyword>',
+                '<identifier> direction </identifier>',
+                '<symbol> ; </symbol>',
+            '</classVarDec>'])
+
+    def test_compile_class_var_dec_2(self):
+        engine = CompilationEngine("field int directionA, directionB;", "fakeOutputFile", True)
+        engine.compile_class_var_dec()
+        self.assertEqual(engine.output, [
+            '<classVarDec>',
+                '<keyword> field </keyword>',
+                '<keyword> int </keyword>',
+                '<identifier> directionA </identifier>',
+                '<symbol> , </symbol>',
+                '<identifier> directionB </identifier>',
+                '<symbol> ; </symbol>',
+            '</classVarDec>'])
+
     def test_compile_var_dec(self):
         engine = CompilationEngine("var char key;", "fakeOutputFile", True)
         engine.compile_var_dec()
@@ -52,6 +76,41 @@ class CompilationEngineTest(unittest.TestCase):
                 '</expression>',
                 '<symbol> ; </symbol>',
             '</letStatement>'])
+
+    def test_compile_while(self):
+        engine = CompilationEngine("while (key = 0) {}", "fakeOutputFile", True)
+        engine.compile_while()
+        self.assertEqual(engine.output, [
+            '<whileStatement>',
+                '<keyword> while </keyword>',
+                '<symbol> ( </symbol>',
+                '<expression>',
+                    '<term>',
+                        '<identifier> key </identifier>',
+                    '</term>',
+                    '<symbol> = </symbol>',
+                    '<term>',
+                        '<integerConstant> 0 </integerConstant>',
+                    '</term>',
+                '</expression>',
+                '<symbol> ) </symbol>',
+                '<symbol> { </symbol>',
+                '<symbol> } </symbol>',
+            '</whileStatement>'])
+
+#    def test_compile_do(self):
+#        engine = CompilationEngine("do draw();", "fakeOutputFile", True)
+#        engine.compile_do()
+#        self.assertEqual(engine.output, [
+#            '<doStatement>',
+#                '<keyword> do </keyword>',
+#                '<identifier> draw </identifier>',
+#                '<symbol> ( </symbol>',
+#                '<expressionList>',
+#                '</expressionList>',
+#                '<symbol> ) </symbol>',
+#                '<symbol> ; </symbol>',
+#            '</doStatement>'])
 
     def test_compile_return(self):
         engine = CompilationEngine("return;", "fakeOutputFile", True)

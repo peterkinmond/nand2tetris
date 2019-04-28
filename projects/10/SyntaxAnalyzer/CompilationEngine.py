@@ -25,10 +25,10 @@ class CompilationEngine(object):
 
         # TODO: How to handle multiple classVarDecs? How to handle 0?
         # classVarDec*
-        self.compile_class_var_dec()
+        #self.compile_class_var_dec()
 
-        # subroutineDec*
-        self.compile_subroutine_dec()
+        # TODO: subroutineDec*
+        #self.compile_subroutine_dec()
 
         self._handle_symbol() # '}'
         self.output.append('</class>') # output </class>
@@ -38,8 +38,17 @@ class CompilationEngine(object):
         or a field declaration.
         classVarDec: ('static'|'field') type varName(',' varName)* ';'
         """
-        pass
+        self.output.append('<classVarDec>') # output <classVarDec>
+        self._handle_keyword() # ('static'|'field')
+        self._handle_keyword() # type
+        self._handle_identifier() # varName
 
+        while (self.tokenizer.peek_at_next_token() == ','):
+            self._handle_symbol() # ','
+            self._handle_identifier() # varName
+
+        self._handle_symbol() # ';'
+        self.output.append('</classVarDec>') # output <classVarDec>
 
     def compile_subroutine_dec(self):
         """Compiles a complete method, function, or constructor.
@@ -70,9 +79,7 @@ class CompilationEngine(object):
         self._handle_keyword() # type
         self._handle_identifier() # varName
 
-        # TODO: Create 'peek' method in tokenizer
-        #if (self.tokenizer.peek() == ','):
-        while (self.tokenizer.text[self.tokenizer.pos + 1] == ','):
+        while (self.tokenizer.peek_at_next_token() == ','):
             self._handle_symbol() # ','
             self._handle_identifier() # varName
 
@@ -94,10 +101,7 @@ class CompilationEngine(object):
         self._handle_keyword() # 'let'
         self._handle_identifier() # varName
         self._handle_symbol() # '='
-
-        # expression
-        self.compile_expression()
-
+        self.compile_expression() # expression
         self._handle_symbol() # ';'
         self.output.append('</letStatement>') # output </letStatement>
 
@@ -112,13 +116,28 @@ class CompilationEngine(object):
         """Compiles a while statement.
         whileStatement: 'while' '(' expression ')' '{' statements '}'
         """
-        pass
+        self.output.append('<whileStatement>') # output <whileStatement>
+        self._handle_keyword() # 'while'
+        self._handle_symbol() # '('
+        self.compile_expression() # expression
+        self._handle_symbol() # ')'
+        self._handle_symbol() # '{'
+        self.compile_statements() # statements
+        self._handle_symbol() # '}'
+        self.output.append('</whileStatement>') # output </whileStatement>
 
     def compile_do(self):
         """Compiles a do statement.
         doStatement: 'do' subroutineCall ';'
         """
-        pass
+        self.output.append('<doStatement>') # output <doStatement>
+        self._handle_keyword() # 'do'
+
+        # TODO: subroutineCall
+        #self.compile_subroutine_call()
+
+        self._handle_symbol() # ';'
+        self.output.append('</doStatement>') # output </doStatement>
 
     def compile_return(self):
         """Compiles a return statement.
@@ -127,9 +146,7 @@ class CompilationEngine(object):
         self.output.append('<returnStatement>') # output <returnStatement>
         self._handle_keyword() # 'return'
 
-        # TODO: Create 'peek' method in tokenizer
-        #if (self.tokenizer.peek() != SYMBOL):
-        if (self.tokenizer.text[self.tokenizer.pos + 1] not in SYMBOLS):
+        if (self.tokenizer.peek_at_next_token() not in SYMBOLS):
             self.compile_expression()
 
         self._handle_symbol() # ';'
@@ -141,7 +158,11 @@ class CompilationEngine(object):
         """
         self.output.append('<expression>') # output <expression>
         self.compile_term()
-        # TODO: build out the rest
+
+        while (self.tokenizer.peek_at_next_token() == '='):
+            self._handle_symbol() # op
+            self.compile_term() # term
+
         self.output.append('</expression>') # output </expression>
 
     def compile_term(self):
@@ -163,6 +184,8 @@ class CompilationEngine(object):
             self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
         elif token == KEYWORD:
             self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+        elif token == IDENTIFIER:
+            self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
         self.output.append('</term>') # output </term>
 
     def compile_expression_list(self):
