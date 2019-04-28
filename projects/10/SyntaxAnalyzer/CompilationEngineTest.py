@@ -24,6 +24,19 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> ; </symbol>',
             '</varDec>'])
 
+    def test_compile_var_dec_2(self):
+        engine = CompilationEngine("var char keyA, keyB;", "fakeOutputFile", True)
+        engine.compile_var_dec()
+        self.assertEqual(engine.output, [
+            '<varDec>',
+                '<keyword> var </keyword>',
+                '<keyword> char </keyword>',
+                '<identifier> keyA </identifier>',
+                '<symbol> , </symbol>',
+                '<identifier> keyB </identifier>',
+                '<symbol> ; </symbol>',
+            '</varDec>'])
+
     def test_compile_let(self):
         engine = CompilationEngine("let x = 4;", "fakeOutputFile", True)
         engine.compile_let()

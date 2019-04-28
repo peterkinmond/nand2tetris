@@ -69,6 +69,13 @@ class CompilationEngine(object):
         self._handle_keyword() # 'var'
         self._handle_keyword() # type
         self._handle_identifier() # varName
+
+        # TODO: Create 'peek' method in tokenizer
+        #if (self.tokenizer.peek() == ','):
+        while (self.tokenizer.text[self.tokenizer.pos + 1] == ','):
+            self._handle_symbol() # ','
+            self._handle_identifier() # varName
+
         self._handle_symbol() # ';'
         self.output.append('</varDec>') # output <varDec>
 
