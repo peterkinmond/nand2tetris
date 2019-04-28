@@ -1,15 +1,16 @@
+from Constants import *
 from JackTokenizer import JackTokenizer
 
 class CompilationEngine(object):
     """CompilationEngine: generates the compiler's output."""
 
-    def __init__(self, input_file, output_file):
+    def __init__(self, input_file, output_file, use_text_as_input=False):
         """Creates a new compilation engine with the
         given input and output.
 
         The next routine called must be compile_class
         """
-        self.tokenizer = JackTokenizer(input_file)
+        self.tokenizer = JackTokenizer(input_file, use_text_as_input)
         self.output_file = output_file
         self.output = []
 
@@ -22,7 +23,7 @@ class CompilationEngine(object):
         self.handle_identifier() # className
         self.handle_symbol() # '{'
 
-
+        # TODO: How to handle multiple classVarDecs? How to handle 0?
         # classVarDec*
         self.compile_class_var_dec()
 
@@ -34,26 +35,16 @@ class CompilationEngine(object):
 
 
     def handle_keyword(self):
-        if (self.tokenizer.has_more_tokens()):
-            self.tokenizer.advance()
-            self.output.append("<keyword>{}</keyword>".format(self.tokenizer.keyword()))
-        else:
-            raise Exception("Can't handle keyword - file has no more tokens")
-
+        self.tokenizer.advance()
+        self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
 
     def handle_identifier(self):
-        if (self.tokenizer.has_more_tokens()):
-            self.tokenizer.advance()
-            self.output.append("<identifier>{}</identifier>".format(self.tokenizer.identifier()))
-        else:
-            raise Exception("Can't handle identifier - file has no more tokens")
+        self.tokenizer.advance()
+        self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
 
     def handle_symbol(self):
-        if (self.tokenizer.has_more_tokens()):
-            self.tokenizer.advance()
-            self.output.append("<symbol>{}</symbol>".format(self.tokenizer.symbol()))
-        else:
-            raise Exception("Can't handle symbol - file has no more tokens")
+        self.tokenizer.advance()
+        self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
 
     def compile_class_var_dec(self):
         """Compiles a static variable declaration,
@@ -100,7 +91,18 @@ class CompilationEngine(object):
         """Compiles a let statement.
         letStatement: 'let' varName('[' expression ']')? '=' expression ';'
         """
-        pass
+        self.output.append('<letStatement>') # output <letStatement>
+        self.handle_keyword() # 'let'
+        self.handle_identifier() # varName
+        self.handle_symbol() # '='
+
+        # expression
+        self.compile_expression()
+
+        self.handle_symbol() # ';'
+        self.output.append('</letStatement>') # output </letStatement>
+
+
 
     def compile_if(self):
         """Compiles a if statement.
@@ -125,13 +127,26 @@ class CompilationEngine(object):
         """Compiles a return statement.
         returnStatement: 'return' expression? ';'
         """
-        pass
+        self.output.append('<returnStatement>') # output <returnStatement>
+        self.handle_keyword() # 'return'
+
+        # TODO: handle optional expression. How to do?
+        # Do conditional here or handle in compile_expression method?
+        #self.tokenizer.advance()
+        #if (self.tokenizer.token_type != SYMBOL):
+        #    self.compile_expression()
+
+        self.handle_symbol() # ';'
+        self.output.append('</returnStatement>') # output </returnStatement>
 
     def compile_expression(self):
         """Compiles an expression.
         expression: term (op term)*
         """
-        pass
+        self.output.append('<expression>') # output <expression>
+        self.compile_term()
+        # TODO: build out the rest
+        self.output.append('</expression>') # output </expression>
 
     def compile_term(self):
         """Compiles a term. If the current token is an identifier,
@@ -144,7 +159,11 @@ class CompilationEngine(object):
         term: integerConstant|stringConstant|keywordConstant|varName|
             varName'['expression']'|subroutineCall|'('expression')'|unaryOp term
         """
-        pass
+        self.output.append('<term>') # output <term>
+        # TODO: handle all types
+        self.tokenizer.advance()
+        self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.identifier()))
+        self.output.append('</term>') # output </term>
 
     def compile_expression_list(self):
         """Compiles a (possibly empty) comma-separated list of expressions.
