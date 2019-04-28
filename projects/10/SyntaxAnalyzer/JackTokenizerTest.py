@@ -10,7 +10,11 @@ class JackTokenizerTest(unittest.TestCase):
         self.assertTrue(tokenizer.is_identifier('abc123'))
         self.assertTrue(tokenizer.is_identifier('_abc123'))
 
-    def test_tokenizer(self):
+    def test_parse_all_tokens(self):
+        tokenizer = JackTokenizer("let x = 4;", True)
+        self.assertEqual(len(tokenizer.tokens), 5)
+
+    def test_advance(self):
         """Tests all parts of the tokenizer using this Jack code:
 
         /** Multi-line comment for

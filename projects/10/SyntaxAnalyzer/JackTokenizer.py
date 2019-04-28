@@ -37,7 +37,7 @@ class JackTokenizer:
 
     def parse_all_tokens(self, text):
         pos = 0 # Current position within text
-        while pos < (len(text) - 1):
+        while pos < len(text):
             if text[pos] == " ": # Ignore whitespace
                 pos += 1
                 continue
