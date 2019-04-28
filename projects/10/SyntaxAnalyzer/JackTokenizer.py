@@ -13,11 +13,17 @@ class JackTokenizer:
             text = input_file
         else:
             text = open(input_file, 'r').read()
-        self.text = self.remove_comments(text)
+        text = self.remove_comments(text)
 
-        self.pos = 0 # Current position within text
-        self.current_char = self.text[self.pos]
-        self.current_token = ""
+        self.tokens = [] # Will store all tokens
+        self.token_index = -1 # Position of current token - start with no token selected
+        self.current_token = None # Start with no token selected
+
+        # Parse all the tokens in one pass rather than parsing them as needed. This makes it
+        # easier since we don't need to track where we are in the text of the file and makes
+        # the logic for methods used by compilation engine (advance, peek_at_next_token)
+        # much simpler.
+        self.parse_all_tokens(text)
 
     def remove_comments(self, text):
         # Delete single-line style comments (// ...)
@@ -29,20 +35,34 @@ class JackTokenizer:
 
         return text
 
+    def parse_all_tokens(self, text):
+        pos = 0 # Current position within text
+        while pos < (len(text) - 1):
+            if text[pos] == " ": # Ignore whitespace
+                pos += 1
+                continue
+
+            token = text[pos]
+            if token in SYMBOLS: # Symbols are all 1 char so we're done
+                self.tokens.append(token)
+                pos += 1
+                continue
+
+            # There are valid cases of 2 tokens "touching" (no white space separation)
+            # but they always involve symbols, which need to be treated somewhat
+            # specially for that reason. If the next char would "change" a token type,
+            # then exit the method since the next char should be a separate token.
+            # let x =4; (symbol + identifier + symbol)
+            while text[pos + 1] != " " and text[pos + 1] not in SYMBOLS:
+                pos += 1
+                token += text[pos]
+
+            self.tokens.append(token)
+            pos += 1
+
     def has_more_tokens(self):
         """Are there more tokens in the input?"""
-        # Special case for when tokenizer starts - may already be on a token
-        if (self.pos == 0) and self.text[self.pos] != " ":
-            return True
-
-        # Otherwise try to find a non-white space char (which indicates a token)
-        while self.pos < (len(self.text) - 1):
-            self.pos += 1
-            self.current_char = self.text[self.pos]
-            if self.current_char != " ":
-                return True
-
-        return False
+        return self.token_index < len(self.tokens) - 1
 
     def advance(self):
         """Gets the next token from the input, and makes it the current token.
@@ -53,20 +73,17 @@ class JackTokenizer:
         if (self.has_more_tokens() == False):
             raise Exception("File has no more tokens - can't advance")
 
-        self.current_token = self.text[self.pos]
+        self.token_index += 1
+        self.current_token = self.tokens[self.token_index]
 
-        if self.current_token in SYMBOLS: # Symbols are all 1 char so we're done
-            return
-
-        # There are valid cases of 2 tokens "touching" (no white space separation)
-        # but they always involve symbols, which need to be treated somewhat
-        # specially for that reason. If the next char would "change" a token type,
-        # then exit the method since the next char should be a separate token.
-        # let x =4; (symbol + identifier + symbol)
-        while self.text[self.pos + 1] != " " and self.text[self.pos + 1] not in SYMBOLS:
-            self.pos += 1
-            self.current_char = self.text[self.pos]
-            self.current_token += self.current_char
+    def peek_at_next_token(self):
+        """Peek at the next token without advancing the token index.
+        This method is useful to help the CompilationEngine make decisions about
+        what elements to compile.
+        """
+        if (self.has_more_tokens() == False):
+            raise Exception("File has no more tokens - can't peek at next token")
+        return self.tokens[self.token_index + 1]
 
     def token_type(self):
         """Returns the type of the current token as a constant."""
