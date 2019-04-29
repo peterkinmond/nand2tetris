@@ -23,12 +23,13 @@ class CompilationEngine(object):
         self._handle_identifier() # className
         self._handle_symbol() # '{'
 
-        # TODO: How to handle multiple classVarDecs? How to handle 0?
         # classVarDec*
-        #self.compile_class_var_dec()
+        while self.tokenizer.peek_at_next_token() in [STATIC, FIELD]:
+            self.compile_class_var_dec()
 
-        # TODO: subroutineDec*
-        #self.compile_subroutine_dec()
+        # subroutineDec*
+        while self.tokenizer.peek_at_next_token() in [CONSTRUCTOR, FUNCTION, METHOD]:
+            self.compile_subroutine_dec()
 
         self._handle_symbol() # '}'
         self.output.append('</class>') # output </class>
@@ -55,7 +56,20 @@ class CompilationEngine(object):
         subroutineDec: ('constructor'|'function'|'method') ('void'|type)
             subroutineName '(' parameterList ')' subroutineBody
         """
-        pass
+        self.output.append('<subroutineDec>')
+        self._handle_keyword() # ('constructor'|'function'|'method')
+
+        if self.tokenizer.peek_at_next_token() == VOID:
+            self._handle_keyword() # 'void'
+        else:
+            self._handle_identifier() # type
+
+        self._handle_identifier() # subroutineName
+        self._handle_symbol() # '('
+        self.compile_parameter_list()
+        self._handle_symbol() # ')'
+        self.compile_subroutine_body()
+        self.output.append('</subroutineDec>')
 
     def compile_parameter_list(self):
         """Compiles a (possibly empty) parameter list.
@@ -91,7 +105,21 @@ class CompilationEngine(object):
         Does not handle the enclosing "{}".
         statements: statement*
         """
-        pass
+        self.output.append('<statements>') # output <statements>
+        next_token = self.tokenizer.peek_at_next_token()
+        while next_token in [LET, IF, WHILE, DO, RETURN]:
+            if next_token == LET:
+                self.compile_let()
+            elif next_token == IF:
+                self.compile_if()
+            elif next_token == WHILE:
+                self.compile_while()
+            elif next_token == DO:
+                self.compile_do()
+            elif next_token == RETURN:
+                self.compile_return()
+            next_token = self.tokenizer.peek_at_next_token()
+        self.output.append('</statements>') # output </statements>
 
     def compile_let(self):
         """Compiles a let statement.
@@ -110,7 +138,22 @@ class CompilationEngine(object):
         ifStatement: 'if' '(' expression ')' '{' statements '}'
             ('else' '{' statements '}')?
         """
-        pass
+        self.output.append('<ifStatement>') # output <ifStatement>
+        self._handle_keyword() # 'if'
+        self._handle_symbol() # '('
+        self.compile_expression() # expression
+        self._handle_symbol() # ')'
+        self._handle_symbol() # '{'
+        self.compile_statements() # statements
+        self._handle_symbol() # '}'
+
+        if self.tokenizer.peek_at_next_token() == ELSE:
+            self._handle_keyword() # 'if'
+            self._handle_symbol() # '{'
+            self.compile_statements() # statements
+            self._handle_symbol() # '}'
+
+        self.output.append('</ifStatement>') # output </ifStatement>
 
     def compile_while(self):
         """Compiles a while statement.
@@ -146,7 +189,7 @@ class CompilationEngine(object):
         self.output.append('<returnStatement>') # output <returnStatement>
         self._handle_keyword() # 'return'
 
-        if (self.tokenizer.peek_at_next_token() not in SYMBOLS):
+        if (self.tokenizer.peek_at_next_token() != ';'):
             self.compile_expression()
 
         self._handle_symbol() # ';'
@@ -159,7 +202,7 @@ class CompilationEngine(object):
         self.output.append('<expression>') # output <expression>
         self.compile_term()
 
-        while (self.tokenizer.peek_at_next_token() == '='):
+        while (self.tokenizer.peek_at_next_token() in OPS):
             self._handle_symbol() # op
             self.compile_term() # term
 

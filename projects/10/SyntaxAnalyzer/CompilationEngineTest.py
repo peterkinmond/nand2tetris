@@ -77,6 +77,38 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> ; </symbol>',
             '</letStatement>'])
 
+    def test_compile_if(self):
+        engine = CompilationEngine("if (key = 81) { return; } else {}", "fakeOutputFile", True)
+        engine.compile_if()
+        self.assertEqual(engine.output, [
+            '<ifStatement>',
+                '<keyword> if </keyword>',
+                '<symbol> ( </symbol>',
+                '<expression>',
+                    '<term>',
+                        '<identifier> key </identifier>',
+                    '</term>',
+                    '<symbol> = </symbol>',
+                    '<term>',
+                        '<integerConstant> 81 </integerConstant>',
+                    '</term>',
+                '</expression>',
+                '<symbol> ) </symbol>',
+                '<symbol> { </symbol>',
+                '<statements>',
+                    '<returnStatement>',
+                        '<keyword> return </keyword>',
+                        '<symbol> ; </symbol>',
+                    '</returnStatement>',
+                '</statements>',
+                '<symbol> } </symbol>',
+                '<keyword> else </keyword>',
+                '<symbol> { </symbol>',
+                '<statements>',
+                '</statements>',
+                '<symbol> } </symbol>',
+            '</ifStatement>'])
+
     def test_compile_while(self):
         engine = CompilationEngine("while (key = 0) {}", "fakeOutputFile", True)
         engine.compile_while()
@@ -95,6 +127,8 @@ class CompilationEngineTest(unittest.TestCase):
                 '</expression>',
                 '<symbol> ) </symbol>',
                 '<symbol> { </symbol>',
+                '<statements>',
+                '</statements>',
                 '<symbol> } </symbol>',
             '</whileStatement>'])
 

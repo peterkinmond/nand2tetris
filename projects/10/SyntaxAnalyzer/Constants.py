@@ -33,5 +33,8 @@ KEYWORDS = [
     INT, CHAR, BOOLEAN, VOID, TRUE, FALSE, NULL, THIS, LET,
     DO, IF, ELSE, WHILE, RETURN
 ]
+
 SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
     '/', '&', '|', '<', '>', '=', '~']
+
+OPS = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
