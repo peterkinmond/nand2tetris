@@ -41,7 +41,7 @@ class CompilationEngine(object):
         """
         self.output.append('<classVarDec>') # output <classVarDec>
         self._handle_keyword() # ('static'|'field')
-        self._handle_keyword() # type
+        self._handle_type() # type
         self._handle_identifier() # varName
 
         while (self.tokenizer.peek_at_next_token() == ','):
@@ -62,7 +62,7 @@ class CompilationEngine(object):
         if self.tokenizer.peek_at_next_token() == VOID:
             self._handle_keyword() # 'void'
         else:
-            self._handle_identifier() # type
+            self._handle_type() # type
 
         self._handle_identifier() # subroutineName
         self._handle_symbol() # '('
@@ -76,13 +76,32 @@ class CompilationEngine(object):
         Does not handle the enclosing "()".
         parameterList: ((type varName) (',' type varName)*)?
         """
-        pass
+        self.output.append('<parameterList>')
+
+        # ((type varName) (',' type varName)*)?
+        if self.tokenizer.peek_at_next_token() != ')':
+            self._handle_type() # type
+            self._handle_identifier() # varName
+            while self.tokenizer.peek_at_next_token() != ')':
+                self._handle_symbol() # ','
+                self._handle_type() # type
+                self._handle_identifier() # varName
+
+        self.output.append('</parameterList>')
 
     def compile_subroutine_body(self):
         """Compiles a subroutine's body.
         subroutineBody: '{' varDec* statements '}'
         """
-        pass
+        self.output.append('<subroutineBody>')
+        self._handle_symbol() # '{'
+
+        while self.tokenizer.peek_at_next_token() == VAR:
+            self.compile_var_dec()
+
+        self.compile_statements()
+        self._handle_symbol() # '}'
+        self.output.append('</subroutineBody>')
 
     def compile_var_dec(self):
         """Compiles a var declaration.
@@ -90,7 +109,7 @@ class CompilationEngine(object):
         """
         self.output.append('<varDec>') # output <varDec>
         self._handle_keyword() # 'var'
-        self._handle_keyword() # type
+        self._handle_type() # type
         self._handle_identifier() # varName
 
         while (self.tokenizer.peek_at_next_token() == ','):
@@ -236,6 +255,14 @@ class CompilationEngine(object):
         expressionList: (expression (','expression)* )?
         """
         pass
+
+    def _handle_type(self):
+        """ type: 'int'|'char'|'boolean'|className"""
+        self.tokenizer.advance()
+        if self.tokenizer.current_token in [INT, CHAR, BOOLEAN]:
+            self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+        else:
+            self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
 
     def _handle_keyword(self):
         self.tokenizer.advance()

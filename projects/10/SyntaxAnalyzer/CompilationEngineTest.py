@@ -37,6 +37,38 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> ; </symbol>',
             '</classVarDec>'])
 
+
+    def test_compile_subroutine_dec(self):
+        engine = CompilationEngine("method void decSize(int Ax, int Ay) { var boolean exit; }", "fakeOutputFile", True)
+        engine.compile_subroutine_dec()
+        self.assertEqual(engine.output, [
+            '<subroutineDec>',
+                '<keyword> method </keyword>',
+                '<keyword> void </keyword>',
+                '<identifier> decSize </identifier>',
+                '<symbol> ( </symbol>',
+                '<parameterList>',
+                    '<keyword> int </keyword>',
+                    '<identifier> Ax </identifier>',
+                    '<symbol> , </symbol>',
+                    '<keyword> int </keyword>',
+                    '<identifier> Ay </identifier>',
+                '</parameterList>',
+                '<symbol> ) </symbol>',
+                '<subroutineBody>',
+                    '<symbol> { </symbol>',
+                    '<varDec>',
+                        '<keyword> var </keyword>',
+                        '<keyword> boolean </keyword>',
+                        '<identifier> exit </identifier>',
+                        '<symbol> ; </symbol>',
+                    '</varDec>',
+                    '<statements>',
+                    '</statements>',
+                    '<symbol> } </symbol>',
+                '</subroutineBody>',
+            '</subroutineDec>'])
+
     def test_compile_var_dec(self):
         engine = CompilationEngine("var char key;", "fakeOutputFile", True)
         engine.compile_var_dec()
