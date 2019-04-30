@@ -164,19 +164,35 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> } </symbol>',
             '</whileStatement>'])
 
-#    def test_compile_do(self):
-#        engine = CompilationEngine("do draw();", "fakeOutputFile", True)
-#        engine.compile_do()
-#        self.assertEqual(engine.output, [
-#            '<doStatement>',
-#                '<keyword> do </keyword>',
-#                '<identifier> draw </identifier>',
-#                '<symbol> ( </symbol>',
-#                '<expressionList>',
-#                '</expressionList>',
-#                '<symbol> ) </symbol>',
-#                '<symbol> ; </symbol>',
-#            '</doStatement>'])
+    def test_compile_do(self):
+        engine = CompilationEngine("do draw();", "fakeOutputFile", True)
+        engine.compile_do()
+        self.assertEqual(engine.output, [
+            '<doStatement>',
+                '<keyword> do </keyword>',
+                '<identifier> draw </identifier>',
+                '<symbol> ( </symbol>',
+                '<expressionList>',
+                '</expressionList>',
+                '<symbol> ) </symbol>',
+                '<symbol> ; </symbol>',
+            '</doStatement>'])
+
+    def test_compile_do_2(self):
+        engine = CompilationEngine("do square.dispose();", "fakeOutputFile", True)
+        engine.compile_do()
+        self.assertEqual(engine.output, [
+            '<doStatement>',
+                '<keyword> do </keyword>',
+                '<identifier> square </identifier>',
+                '<symbol> . </symbol>',
+                '<identifier> dispose </identifier>',
+                '<symbol> ( </symbol>',
+                '<expressionList>',
+                '</expressionList>',
+                '<symbol> ) </symbol>',
+                '<symbol> ; </symbol>',
+            '</doStatement>'])
 
     def test_compile_return(self):
         engine = CompilationEngine("return;", "fakeOutputFile", True)

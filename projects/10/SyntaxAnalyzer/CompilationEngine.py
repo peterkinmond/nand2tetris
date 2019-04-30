@@ -194,12 +194,33 @@ class CompilationEngine(object):
         """
         self.output.append('<doStatement>') # output <doStatement>
         self._handle_keyword() # 'do'
-
-        # TODO: subroutineCall
-        #self.compile_subroutine_call()
-
+        self.compile_subroutine_call() # subroutineCall
         self._handle_symbol() # ';'
         self.output.append('</doStatement>') # output </doStatement>
+
+    def compile_subroutine_call(self):
+        """subroutineCall: subroutineName'('expressionList')'|
+            (className|varName)'.'subroutineName'('expressionList')'
+        """
+        self._handle_identifier() # subroutineName or (className|varName)
+        if self.tokenizer.peek_at_next_token() == '.':
+            self._handle_symbol() # '.'
+            self._handle_identifier() # subroutineName
+        self._handle_symbol() # '('
+        self.compile_expression_list() # expressionList
+        self._handle_symbol() # ')'
+
+    def compile_expression_list(self):
+        """Compiles a (possibly empty) comma-separated list of expressions.
+        expressionList: (expression (','expression)* )?
+        """
+        self.output.append('<expressionList>') # output <expressionList>
+        if self.tokenizer.peek_at_next_token() != ')':
+            self.compile_expression() # expression
+            while self.tokenizer.peek_at_next_token() != ')':
+                self._handle_symbol() # ','
+                self.compile_expression() # type
+        self.output.append('</expressionList>') # output </expressionList>
 
     def compile_return(self):
         """Compiles a return statement.
@@ -249,12 +270,6 @@ class CompilationEngine(object):
         elif token == IDENTIFIER:
             self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
         self.output.append('</term>') # output </term>
-
-    def compile_expression_list(self):
-        """Compiles a (possibly empty) comma-separated list of expressions.
-        expressionList: (expression (','expression)* )?
-        """
-        pass
 
     def _handle_type(self):
         """ type: 'int'|'char'|'boolean'|className"""
