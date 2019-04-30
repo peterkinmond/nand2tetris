@@ -31,7 +31,7 @@ class JackTokenizer:
         # Remove newlines
         text = text.replace('\r', '').replace('\n', ' ')
         # Delete multi-line style comments (/*  */)
-        text = re.sub("/\*.*\*/", '', text)
+        text = re.sub("/\*.*?\*/", '', text)
 
         return text
 
