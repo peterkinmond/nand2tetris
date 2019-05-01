@@ -3,5 +3,5 @@ some class. */
 class A{
   // Single-line comment
   let x = -4;
-  do Output.printString("Huzzah!");
+  do Output.printString("Ring Constants!");
 }

@@ -53,9 +53,14 @@ class JackTokenizer:
             # specially for that reason. If the next char would "change" a token type,
             # then exit the method since the next char should be a separate token.
             # let x =4; (symbol + identifier + symbol)
-            while text[pos + 1] != " " and text[pos + 1] not in SYMBOLS:
-                pos += 1
-                token += text[pos]
+            if token == '"': # String constant to match with closing '"'
+                end_pos = text.find('"', pos + 1)
+                token = text[pos:end_pos + 1]
+                pos = end_pos
+            else:
+                while text[pos + 1] != " " and text[pos + 1] not in SYMBOLS:
+                    pos += 1
+                    token += text[pos]
 
             self.tokens.append(token)
             pos += 1
@@ -91,7 +96,7 @@ class JackTokenizer:
             return KEYWORD
         elif self.current_token in SYMBOLS:
             return SYMBOL
-        elif self.is_identifier(self.current_token):
+        elif self.is_identifier():
             return IDENTIFIER
         elif self.current_token.isdigit():
             return INT_CONST
@@ -100,15 +105,15 @@ class JackTokenizer:
         else:
             return "Error: token type not found for token '{}'".format(self.current_token)
 
-    def is_identifier(self, token):
-        if len(token) == 0:
+    def is_identifier(self):
+        if len(self.current_token) == 0:
             return False
 
-        if token[0].isdigit(): # Can't start with digit
+        if self.current_token[0].isdigit(): # Can't start with digit
             return False
 
         # Must contain only alphanumeric chars or underscores
-        return re.match(r'^\w+$', token)
+        return re.match(r'^\w+$', self.current_token)
 
     def keyword(self):
         """Returns the keyword which is the current token, as a constant.

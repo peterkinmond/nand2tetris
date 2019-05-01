@@ -3,13 +3,6 @@ from JackTokenizer import *
 import unittest
 
 class JackTokenizerTest(unittest.TestCase):
-    def test_is_identifier(self):
-        tokenizer = JackTokenizer("test.jack")
-        self.assertFalse(tokenizer.is_identifier('123abc'))
-        self.assertFalse(tokenizer.is_identifier('abc 123'))
-        self.assertTrue(tokenizer.is_identifier('abc123'))
-        self.assertTrue(tokenizer.is_identifier('_abc123'))
-
     def test_parse_all_tokens(self):
         tokenizer = JackTokenizer("let x = 4;", True)
         self.assertEqual(len(tokenizer.tokens), 5)
@@ -22,7 +15,7 @@ class JackTokenizerTest(unittest.TestCase):
         class A{
           // Single-line comment
           let x = -4;
-          do Output.printString("Huzzah!");
+          do Output.printString("Ring Constants!");
         }
 
         """
@@ -72,7 +65,7 @@ class JackTokenizerTest(unittest.TestCase):
         self.assertEqual(tokenizer.symbol(), '(')
         self.assertEqual(tokenizer.token_type(), SYMBOL)
         tokenizer.advance()
-        self.assertEqual(tokenizer.string_val(), 'Huzzah!')
+        self.assertEqual(tokenizer.string_val(), 'Ring Constants!')
         self.assertEqual(tokenizer.token_type(), STRING_CONST)
         tokenizer.advance()
         self.assertEqual(tokenizer.symbol(), ')')
