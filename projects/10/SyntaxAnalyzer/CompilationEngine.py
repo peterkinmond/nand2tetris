@@ -14,6 +14,11 @@ class CompilationEngine(object):
         self.output_file = output_file
         self.output = []
 
+    def save_output_file(self):
+        file = open(self.output_file, 'w')
+        for line in self.output:
+            file.write(line + '\n')
+
     def compile_class(self):
         """Compiles a complete class.
         class: 'class' className '{' classVarDec* subroutineDec* '}'
