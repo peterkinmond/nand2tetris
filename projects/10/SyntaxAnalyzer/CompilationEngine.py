@@ -147,6 +147,12 @@ class CompilationEngine(object):
         self.output.append('<letStatement>') # output <letStatement>
         self._handle_keyword() # 'let'
         self._handle_identifier() # varName
+
+        if self.tokenizer.peek_at_next_token() == '[':
+            self._handle_symbol() # '['
+            self.compile_expression() # expression
+            self._handle_symbol() # ']'
+
         self._handle_symbol() # '='
         self.compile_expression() # expression
         self._handle_symbol() # ';'
@@ -260,15 +266,41 @@ class CompilationEngine(object):
             varName'['expression']'|subroutineCall|'('expression')'|unaryOp term
         """
         self.output.append('<term>') # output <term>
-        # TODO: handle all types
         self.tokenizer.advance()
-        token = self.tokenizer.token_type()
-        if token == INT_CONST:
+        token_type = self.tokenizer.token_type()
+        if token_type == INT_CONST:
             self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
-        elif token == KEYWORD:
+        elif token_type == STRING_CONST:
+            self.output.append("<stringConstant> {} </stringConstant>".format(self.tokenizer.string_val()))
+        elif token_type == KEYWORD:
             self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
-        elif token == IDENTIFIER:
+        elif token_type == IDENTIFIER: # varName|varName'['expression']'|subroutineCall
             self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
+            next_token = self.tokenizer.peek_at_next_token()
+            if next_token == '[': # varName'['expression']'
+                self._handle_symbol() # '['
+                self.compile_expression() # expression
+                self._handle_symbol() # ']'
+            elif next_token == '(': # subroutineCall
+                self._handle_symbol() # '('
+                self.compile_expression_list() # expressionList
+                self._handle_symbol() # ')'
+            elif next_token == '.': # subroutineCall
+                self._handle_symbol() # '.'
+                self._handle_identifier() # subroutineName
+                self._handle_symbol() # '('
+                self.compile_expression_list() # expressionList
+                self._handle_symbol() # ')'
+        elif self.tokenizer.current_token == '(': # '('expression')'
+            self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol())) # '('
+            self.compile_expression() # expression
+            self._handle_symbol() # ')'
+        elif self.tokenizer.current_token in ['-', '~']: # unaryOp term
+            self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
+            self.compile_term()
+        else:
+            raise Exception("Token '{}' not matched to any term".format(self.tokenizer.current_token))
+
         self.output.append('</term>') # output </term>
 
     def _handle_type(self):
@@ -290,3 +322,11 @@ class CompilationEngine(object):
     def _handle_symbol(self):
         self.tokenizer.advance()
         self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
+
+    def _handle_int_const(self):
+        self.tokenizer.advance()
+        self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
+
+    def _handle_string_const(self):
+        self.tokenizer.advance()
+        self.output.append("<stringConstant> {} </stringConstant>".format(self.tokenizer.string_val()))

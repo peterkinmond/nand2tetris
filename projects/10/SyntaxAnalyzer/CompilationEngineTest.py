@@ -1,3 +1,4 @@
+import re
 import unittest
 from CompilationEngine import CompilationEngine
 
@@ -94,7 +95,7 @@ class CompilationEngineTest(unittest.TestCase):
             '</varDec>'])
 
     def test_compile_let(self):
-        engine = CompilationEngine("let x = 4;", "fakeOutputFile", True)
+        engine = CompilationEngine('let x = "string constant";', "fakeOutputFile", True)
         engine.compile_let()
         self.assertEqual(engine.output, [
             '<letStatement>',
@@ -103,7 +104,7 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> = </symbol>',
                 '<expression>',
                     '<term>',
-                        '<integerConstant> 4 </integerConstant>',
+                        '<stringConstant> string constant </stringConstant>',
                     '</term>',
                 '</expression>',
                 '<symbol> ; </symbol>',
@@ -217,3 +218,40 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> ; </symbol>',
             '</returnStatement>'])
 
+    def test_square_main_file(self):
+        engine = CompilationEngine("../Square/Main.jack", "fakeOutputFile")
+        engine.compile_class()
+        xml_file = self.convert_xml_file("../Square/Main.xml")
+        self.assertEqual(len(engine.output), 244)
+        self.assertEqual(engine.output, xml_file)
+
+    def test_square_file(self):
+        engine = CompilationEngine("../Square/Square.jack", "fakeOutputFile")
+        engine.compile_class()
+        xml_file = self.convert_xml_file("../Square/Square.xml")
+        self.assertEqual(len(engine.output), 1211)
+        self.assertEqual(engine.output, xml_file)
+
+    def test_square_game_file(self):
+        engine = CompilationEngine("../Square/SquareGame.jack", "fakeOutputFile")
+        engine.compile_class()
+        xml_file = self.convert_xml_file("../Square/SquareGame.xml")
+        self.assertEqual(len(engine.output), 643)
+        self.assertEqual(engine.output, xml_file)
+
+    def test_array_file(self):
+        engine = CompilationEngine("../ArrayTest/Main.jack", "fakeOutputFile")
+        engine.compile_class()
+        xml_file = self.convert_xml_file("../ArrayTest/Main.xml")
+        self.assertEqual(len(engine.output), 286)
+        self.assertEqual(engine.output, xml_file)
+
+    def convert_xml_file(self, filepath):
+        file_text = open(filepath, 'r').read()
+        file_text_in_array = file_text.split('\n')
+        result = []
+        for line in file_text_in_array:
+            if len(line) == 0:
+                continue
+            result.append(line.strip())
+        return result

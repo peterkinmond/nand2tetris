@@ -29,7 +29,7 @@ class JackTokenizer:
         # Delete single-line style comments (// ...)
         text = re.sub("//.*\n", '', text)
         # Remove newlines
-        text = text.replace('\r', '').replace('\n', ' ')
+        text = text.replace('\r', '').replace('\n', ' ').replace('\t', ' ')
         # Delete multi-line style comments (/*  */)
         text = re.sub("/\*.*?\*/", '', text)
 
@@ -127,8 +127,17 @@ class JackTokenizer:
 
         This method should be called only if token_type is SYMBOL.
         """
-        # TODO: Convert <, >, ", and & to &lt;, &gt;, &quot;, &amp;
-        return self.current_token
+        # Convert <, >, ", and & to &lt;, &gt;, &quot;, &amp;
+        if self.current_token == '<':
+            return "&lt;"
+        elif self.current_token == '>':
+            return "&gt;"
+        elif self.current_token == '"':
+            return "&quot;"
+        elif self.current_token == '&':
+            return "&amp;"
+        else:
+            return self.current_token
 
     def identifier(self):
         """Returns the identifier which is the current token.
