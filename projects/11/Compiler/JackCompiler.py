@@ -21,7 +21,7 @@ def main():
 
     for jack_file in jack_files:
         print('Loading file: ' + jack_file)
-        output_file = os.path.splitext(jack_file)[0] + ".xml"
+        output_file = os.path.splitext(jack_file)[0] + ".vm"
         compilation_engine = CompilationEngine(jack_file, output_file)
         compilation_engine.compile_class()
         compilation_engine.save_output_file()

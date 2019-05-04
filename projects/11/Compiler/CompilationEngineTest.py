@@ -239,13 +239,6 @@ class CompilationEngineTest(unittest.TestCase):
         self.assertEqual(len(engine.output), 643)
         self.assertEqual(engine.output, xml_file)
 
-    def test_array_file(self):
-        engine = CompilationEngine("../ArrayTest/Main.jack", "fakeOutputFile")
-        engine.compile_class()
-        xml_file = self.convert_xml_file("../ArrayTest/Main.xml")
-        self.assertEqual(len(engine.output), 286)
-        self.assertEqual(engine.output, xml_file)
-
     def convert_xml_file(self, filepath):
         file_text = open(filepath, 'r').read()
         file_text_in_array = file_text.split('\n')
