@@ -27,6 +27,8 @@ IF = 'if'
 ELSE = 'else'
 WHILE = 'while'
 RETURN = 'return'
+LOCAL = 'local'
+ARGUMENT = 'argument'
 
 KEYWORDS = [
     CLASS, CONSTRUCTOR, FUNCTION, METHOD, FIELD, STATIC, VAR,
