@@ -310,11 +310,10 @@ class CompilationEngine(object):
 
     def _handle_type(self):
         """ type: 'int'|'char'|'boolean'|className"""
-        self.tokenizer.advance()
-        if self.tokenizer.current_token in [INT, CHAR, BOOLEAN]:
-            self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+        if self.tokenizer.peek_at_next_token() in [INT, CHAR, BOOLEAN]:
+            self._handle_keyword()
         else:
-            self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
+            self._handle_identifier()
 
     def _handle_keyword(self):
         self.tokenizer.advance()
