@@ -12,11 +12,6 @@ class SymbolTable(object):
     def __init__(self):
         """Creates a new symbol table"""
         self.symbol_table = {}
-        # Set all indexes to 0
-        self.field_count = 0
-        self.static_count = 0
-        self.argument_count = 0
-        self.local_count = 0
 
     def start_subroutine(self):
         """Starts a new subroutine scope (i.e. resets the
@@ -27,8 +22,6 @@ class SymbolTable(object):
             if value['kind'] in [FIELD, STATIC]:
                 class_symbol_table[key] = value
         self.symbol_table = class_symbol_table
-        self.argument_count = 0
-        self.local_count = 0
 
     def define(self, name, type, kind):
         """Defines a new identifier of the given name, type
@@ -36,40 +29,18 @@ class SymbolTable(object):
         STATIC and FIELD identifiers have a class scope, while
         ARG and VAR identifiers have a subroutine scope.
         """
-        self._increment_count(kind)
-
         self.symbol_table[name] = {
             'type': type,
             'kind': kind,
-            'index': self.var_count(kind) - 1
+            'index': self.var_count(kind)
         }
-
-    def _increment_count(self, kind):
-        if kind == FIELD:
-            self.field_count += 1
-        elif kind == STATIC:
-            self.static_count += 1
-        elif kind == ARGUMENT:
-            self.argument_count += 1
-        elif kind == LOCAL:
-            self.local_count += 1
-        else:
-            raise Exception("Kind '{}' not valid".format(kind))
 
     def var_count(self, kind):
         """Returns the number of vars of the given kind
         already defined in the current scope.
         """
-        if kind == FIELD:
-            return self.field_count
-        elif kind == STATIC:
-            return self.static_count
-        elif kind == ARGUMENT:
-            return self.argument_count
-        elif kind == LOCAL:
-            return self.local_count
-        else:
-            raise Exception("Kind '{}' not valid".format(kind))
+        matching_symbols = dict((k, v) for k, v in self.symbol_table.items() if v['kind'] == kind)
+        return len(matching_symbols)
 
     def kind_of(self, name):
         """Returns the kind of the named identifier in the
