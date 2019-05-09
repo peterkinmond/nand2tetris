@@ -27,8 +27,6 @@ IF = 'if'
 ELSE = 'else'
 WHILE = 'while'
 RETURN = 'return'
-LOCAL = 'local'
-ARGUMENT = 'argument'
 
 KEYWORDS = [
     CLASS, CONSTRUCTOR, FUNCTION, METHOD, FIELD, STATIC, VAR,
@@ -40,3 +38,10 @@ SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
     '/', '&', '|', '<', '>', '=', '~']
 
 OPS = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
+
+# Used for handling identifiers
+DEFINED = 'defined'
+USED = 'used'
+LOCAL = 'local'
+ARGUMENT = 'argument'
+SUBROUTINE = 'subroutine'

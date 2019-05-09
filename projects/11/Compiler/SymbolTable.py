@@ -3,9 +3,11 @@ from Constants import *
 class SymbolTable(object):
     """
     # self.symbol_table = {
-    #     'x': { 'type': INTEGER, 'kind': FIELD, 'index': 0 },
-    #     'y': { 'type': INTEGER, 'kind': FIELD, 'index': 1 },
-    #     'pointCount': { 'type': INTEGER, 'kind': STATIC, 'index': 0 }
+    #     'x': { 'type': int, 'kind': field, 'index': 0 },
+    #     'y': { 'type': int, 'kind': field, 'index': 1 },
+    #     'pointCount': { 'type': int, 'kind': static, 'index': 0 },
+    #     'this': { 'type': Point, 'kind': argument, 'index': 0 }
+    #     'other': { 'type': Point, 'kind': argument, 'index': 1 }
     # }
     """
 
@@ -29,6 +31,9 @@ class SymbolTable(object):
         STATIC and FIELD identifiers have a class scope, while
         ARG and VAR identifiers have a subroutine scope.
         """
+        if type == None:
+            raise Exception("Type for symbol '{}' cannot be None".format(name))
+
         self.symbol_table[name] = {
             'type': type,
             'kind': kind,
@@ -60,4 +65,10 @@ class SymbolTable(object):
 
     def index_of(self, name):
         """Returns the index assigned to the named identifier."""
-        return self.symbol_table[name]['index']
+        if name not in self.symbol_table:
+            return None
+        else:
+            return self.symbol_table[name]['index']
+
+    def is_in_symbol_table(self, name):
+        return name in self.symbol_table
