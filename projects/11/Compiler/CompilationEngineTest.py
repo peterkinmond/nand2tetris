@@ -9,7 +9,7 @@ class CompilationEngineTest(unittest.TestCase):
         self.assertEqual(engine.output, [
             '<class>',
                 '<keyword> class </keyword>',
-                '<identifier> BasicTestClass </identifier>',
+                '<identifier> BasicTestClass, category: class, definedOrUsed: defined </identifier>',
                 '<symbol> { </symbol>',
                 '<symbol> } </symbol>',
             '</class>'])
@@ -21,20 +21,20 @@ class CompilationEngineTest(unittest.TestCase):
             '<classVarDec>',
                 '<keyword> field </keyword>',
                 '<keyword> int </keyword>',
-                '<identifier> direction </identifier>',
+                '<identifier> direction, category: field, definedOrUsed: defined, index: 0 </identifier>',
                 '<symbol> ; </symbol>',
             '</classVarDec>'])
 
     def test_compile_class_var_dec_2(self):
-        engine = CompilationEngine("field int directionA, directionB;", "fakeOutputFile", True)
+        engine = CompilationEngine("static int directionA, directionB;", "fakeOutputFile", True)
         engine.compile_class_var_dec()
         self.assertEqual(engine.output, [
             '<classVarDec>',
-                '<keyword> field </keyword>',
+                '<keyword> static </keyword>',
                 '<keyword> int </keyword>',
-                '<identifier> directionA </identifier>',
+                '<identifier> directionA, category: static, definedOrUsed: defined, index: 0 </identifier>',
                 '<symbol> , </symbol>',
-                '<identifier> directionB </identifier>',
+                '<identifier> directionB, category: static, definedOrUsed: defined, index: 1 </identifier>',
                 '<symbol> ; </symbol>',
             '</classVarDec>'])
 
@@ -46,14 +46,14 @@ class CompilationEngineTest(unittest.TestCase):
             '<subroutineDec>',
                 '<keyword> method </keyword>',
                 '<keyword> void </keyword>',
-                '<identifier> decSize </identifier>',
+                '<identifier> decSize, category: subroutine, definedOrUsed: defined </identifier>',
                 '<symbol> ( </symbol>',
                 '<parameterList>',
                     '<keyword> int </keyword>',
-                    '<identifier> Ax </identifier>',
+                    '<identifier> Ax, category: argument, definedOrUsed: defined, index: 0 </identifier>',
                     '<symbol> , </symbol>',
                     '<keyword> int </keyword>',
-                    '<identifier> Ay </identifier>',
+                    '<identifier> Ay, category: argument, definedOrUsed: defined, index: 1 </identifier>',
                 '</parameterList>',
                 '<symbol> ) </symbol>',
                 '<subroutineBody>',
@@ -61,7 +61,7 @@ class CompilationEngineTest(unittest.TestCase):
                     '<varDec>',
                         '<keyword> var </keyword>',
                         '<keyword> boolean </keyword>',
-                        '<identifier> exit </identifier>',
+                        '<identifier> exit, category: var, definedOrUsed: defined, index: 0 </identifier>',
                         '<symbol> ; </symbol>',
                     '</varDec>',
                     '<statements>',
@@ -77,7 +77,7 @@ class CompilationEngineTest(unittest.TestCase):
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> char </keyword>',
-                '<identifier> key </identifier>',
+                '<identifier> key, category: var, definedOrUsed: defined, index: 0 </identifier>',
                 '<symbol> ; </symbol>',
             '</varDec>'])
 
@@ -88,19 +88,26 @@ class CompilationEngineTest(unittest.TestCase):
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> char </keyword>',
-                '<identifier> keyA </identifier>',
+                '<identifier> keyA, category: var, definedOrUsed: defined, index: 0 </identifier>',
                 '<symbol> , </symbol>',
-                '<identifier> keyB </identifier>',
+                '<identifier> keyB, category: var, definedOrUsed: defined, index: 1 </identifier>',
                 '<symbol> ; </symbol>',
             '</varDec>'])
 
     def test_compile_let(self):
-        engine = CompilationEngine('let x = "string constant";', "fakeOutputFile", True)
+        engine = CompilationEngine('var char x; let x = "string constant";', "fakeOutputFile", True)
+        engine.compile_var_dec()
         engine.compile_let()
         self.assertEqual(engine.output, [
+            '<varDec>',
+                '<keyword> var </keyword>',
+                '<keyword> char </keyword>',
+                '<identifier> x, category: var, definedOrUsed: defined, index: 0 </identifier>',
+                '<symbol> ; </symbol>',
+            '</varDec>',
             '<letStatement>',
                 '<keyword> let </keyword>',
-                '<identifier> x </identifier>',
+                '<identifier> x, category: var, definedOrUsed: used, index: 0 </identifier>',
                 '<symbol> = </symbol>',
                 '<expression>',
                     '<term>',
@@ -111,15 +118,22 @@ class CompilationEngineTest(unittest.TestCase):
             '</letStatement>'])
 
     def test_compile_if(self):
-        engine = CompilationEngine("if (key = 81) { return; } else {}", "fakeOutputFile", True)
+        engine = CompilationEngine("var int key; if (key = 81) { return; } else {}", "fakeOutputFile", True)
+        engine.compile_var_dec()
         engine.compile_if()
         self.assertEqual(engine.output, [
+            '<varDec>',
+                '<keyword> var </keyword>',
+                '<keyword> int </keyword>',
+                '<identifier> key, category: var, definedOrUsed: defined, index: 0 </identifier>',
+                '<symbol> ; </symbol>',
+            '</varDec>',
             '<ifStatement>',
                 '<keyword> if </keyword>',
                 '<symbol> ( </symbol>',
                 '<expression>',
                     '<term>',
-                        '<identifier> key </identifier>',
+                        '<identifier> key, category: var, definedOrUsed: used, index: 0 </identifier>',
                     '</term>',
                     '<symbol> = </symbol>',
                     '<term>',
@@ -143,15 +157,22 @@ class CompilationEngineTest(unittest.TestCase):
             '</ifStatement>'])
 
     def test_compile_while(self):
-        engine = CompilationEngine("while (key = 0) {}", "fakeOutputFile", True)
+        engine = CompilationEngine("var int key; while (key = 0) {}", "fakeOutputFile", True)
+        engine.compile_var_dec()
         engine.compile_while()
         self.assertEqual(engine.output, [
+            '<varDec>',
+                '<keyword> var </keyword>',
+                '<keyword> int </keyword>',
+                '<identifier> key, category: var, definedOrUsed: defined, index: 0 </identifier>',
+                '<symbol> ; </symbol>',
+            '</varDec>',
             '<whileStatement>',
                 '<keyword> while </keyword>',
                 '<symbol> ( </symbol>',
                 '<expression>',
                     '<term>',
-                        '<identifier> key </identifier>',
+                        '<identifier> key, category: var, definedOrUsed: used, index: 0 </identifier>',
                     '</term>',
                     '<symbol> = </symbol>',
                     '<term>',
@@ -171,7 +192,7 @@ class CompilationEngineTest(unittest.TestCase):
         self.assertEqual(engine.output, [
             '<doStatement>',
                 '<keyword> do </keyword>',
-                '<identifier> draw </identifier>',
+                '<identifier> draw, category: subroutine, definedOrUsed: used </identifier>',
                 '<symbol> ( </symbol>',
                 '<expressionList>',
                 '</expressionList>',
@@ -180,14 +201,21 @@ class CompilationEngineTest(unittest.TestCase):
             '</doStatement>'])
 
     def test_compile_do_2(self):
-        engine = CompilationEngine("do square.dispose();", "fakeOutputFile", True)
+        engine = CompilationEngine("field Square square; do square.dispose();", "fakeOutputFile", True)
+        engine.compile_class_var_dec()
         engine.compile_do()
         self.assertEqual(engine.output, [
+            '<classVarDec>',
+                '<keyword> field </keyword>',
+                '<identifier> Square, category: class, definedOrUsed: used </identifier>',
+                '<identifier> square, category: field, definedOrUsed: defined, index: 0 </identifier>',
+                '<symbol> ; </symbol>',
+            '</classVarDec>',
             '<doStatement>',
                 '<keyword> do </keyword>',
-                '<identifier> square </identifier>',
+                '<identifier> square, category: field, definedOrUsed: used, index: 0 </identifier>',
                 '<symbol> . </symbol>',
-                '<identifier> dispose </identifier>',
+                '<identifier> dispose, category: subroutine, definedOrUsed: used </identifier>',
                 '<symbol> ( </symbol>',
                 '<expressionList>',
                 '</expressionList>',
@@ -225,20 +253,21 @@ class CompilationEngineTest(unittest.TestCase):
         self.assertEqual(len(engine.output), 244)
         self.assertEqual(engine.output, xml_file)
 
-    def test_square_file(self):
-        engine = CompilationEngine("../Square/Square.jack", "fakeOutputFile")
-        engine.compile_class()
-        xml_file = self.convert_xml_file("../Square/Square.xml")
-        self.assertEqual(len(engine.output), 1211)
-        self.assertEqual(engine.output, xml_file)
-
-    def test_square_game_file(self):
-        engine = CompilationEngine("../Square/SquareGame.jack", "fakeOutputFile")
-        engine.compile_class()
-        xml_file = self.convert_xml_file("../Square/SquareGame.xml")
-        self.assertEqual(len(engine.output), 643)
-        self.assertEqual(engine.output, xml_file)
-
+# TODO: Do we want to add extra identifier info to these (large) classes?
+#    def test_square_file(self):
+#        engine = CompilationEngine("../Square/Square.jack", "fakeOutputFile")
+#        engine.compile_class()
+#        xml_file = self.convert_xml_file("../Square/Square.xml")
+#        self.assertEqual(len(engine.output), 1211)
+#        self.assertEqual(engine.output, xml_file)
+#
+#    def test_square_game_file(self):
+#        engine = CompilationEngine("../Square/SquareGame.jack", "fakeOutputFile")
+#        engine.compile_class()
+#        xml_file = self.convert_xml_file("../Square/SquareGame.xml")
+#        self.assertEqual(len(engine.output), 643)
+#        self.assertEqual(engine.output, xml_file)
+#
     def convert_xml_file(self, filepath):
         file_text = open(filepath, 'r').read()
         file_text_in_array = file_text.split('\n')

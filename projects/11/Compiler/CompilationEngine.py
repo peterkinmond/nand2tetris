@@ -1,5 +1,7 @@
+import re
 from Constants import *
 from JackTokenizer import JackTokenizer
+from SymbolTable import SymbolTable
 
 class CompilationEngine(object):
     """CompilationEngine: generates the compiler's output."""
@@ -13,6 +15,7 @@ class CompilationEngine(object):
         self.tokenizer = JackTokenizer(input_file, use_text_as_input)
         self.output_file = output_file
         self.output = []
+        self.symbol_table = SymbolTable()
 
     def save_output_file(self):
         file = open(self.output_file, 'w')
@@ -25,7 +28,7 @@ class CompilationEngine(object):
         """
         self.output.append('<class>') # output <class>
         self._handle_keyword() # 'class'
-        self._handle_identifier() # className
+        self._handle_identifier(CLASS, DEFINED) # className
         self._handle_symbol() # '{'
 
         # classVarDec*
@@ -34,6 +37,7 @@ class CompilationEngine(object):
 
         # subroutineDec*
         while self.tokenizer.peek_at_next_token() in [CONSTRUCTOR, FUNCTION, METHOD]:
+            self.symbol_table.start_subroutine()
             self.compile_subroutine_dec()
 
         self._handle_symbol() # '}'
@@ -45,13 +49,13 @@ class CompilationEngine(object):
         classVarDec: ('static'|'field') type varName(',' varName)* ';'
         """
         self.output.append('<classVarDec>') # output <classVarDec>
-        self._handle_keyword() # ('static'|'field')
-        self._handle_type() # type
-        self._handle_identifier() # varName
+        category = self._handle_keyword() # ('static'|'field')
+        type = self._handle_type() # type
+        self._handle_identifier(category, DEFINED, type) # varName
 
         while (self.tokenizer.peek_at_next_token() == ','):
             self._handle_symbol() # ','
-            self._handle_identifier() # varName
+            self._handle_identifier(category, DEFINED, type) # varName
 
         self._handle_symbol() # ';'
         self.output.append('</classVarDec>') # output <classVarDec>
@@ -69,7 +73,7 @@ class CompilationEngine(object):
         else:
             self._handle_type() # type
 
-        self._handle_identifier() # subroutineName
+        self._handle_identifier(SUBROUTINE, DEFINED) # subroutineName
         self._handle_symbol() # '('
         self.compile_parameter_list()
         self._handle_symbol() # ')'
@@ -85,12 +89,12 @@ class CompilationEngine(object):
 
         # ((type varName) (',' type varName)*)?
         if self.tokenizer.peek_at_next_token() != ')':
-            self._handle_type() # type
-            self._handle_identifier() # varName
+            type = self._handle_type() # type
+            self._handle_identifier(ARGUMENT, DEFINED, type) # varName
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
-                self._handle_type() # type
-                self._handle_identifier() # varName
+                type = self._handle_type() # type
+                self._handle_identifier(ARGUMENT, DEFINED, type) # varName
 
         self.output.append('</parameterList>')
 
@@ -113,13 +117,13 @@ class CompilationEngine(object):
         varDec: 'var' type varName (',' varName)* ';'
         """
         self.output.append('<varDec>') # output <varDec>
-        self._handle_keyword() # 'var'
-        self._handle_type() # type
-        self._handle_identifier() # varName
+        category = self._handle_keyword() # 'var'
+        type = self._handle_type() # type
+        self._handle_identifier(category, DEFINED, type) # varName
 
         while (self.tokenizer.peek_at_next_token() == ','):
             self._handle_symbol() # ','
-            self._handle_identifier() # varName
+            self._handle_identifier(category, DEFINED, type) # varName
 
         self._handle_symbol() # ';'
         self.output.append('</varDec>') # output <varDec>
@@ -151,7 +155,7 @@ class CompilationEngine(object):
         """
         self.output.append('<letStatement>') # output <letStatement>
         self._handle_keyword() # 'let'
-        self._handle_identifier() # varName
+        self._handle_identifier(definedOrUsed=USED) # varName
 
         if self.tokenizer.peek_at_next_token() == '[':
             self._handle_symbol() # '['
@@ -213,10 +217,10 @@ class CompilationEngine(object):
         """subroutineCall: subroutineName'('expressionList')'|
             (className|varName)'.'subroutineName'('expressionList')'
         """
-        self._handle_identifier() # subroutineName or (className|varName)
+        self._handle_identifier(definedOrUsed=USED) # subroutineName or (className|varName)
         if self.tokenizer.peek_at_next_token() == '.':
             self._handle_symbol() # '.'
-            self._handle_identifier() # subroutineName
+            self._handle_identifier(SUBROUTINE, USED) # subroutineName
         self._handle_symbol() # '('
         self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
@@ -271,16 +275,15 @@ class CompilationEngine(object):
             varName'['expression']'|subroutineCall|'('expression')'|unaryOp term
         """
         self.output.append('<term>') # output <term>
-        self.tokenizer.advance()
-        token_type = self.tokenizer.token_type()
-        if token_type == INT_CONST:
-            self.output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
-        elif token_type == STRING_CONST:
-            self.output.append("<stringConstant> {} </stringConstant>".format(self.tokenizer.string_val()))
-        elif token_type == KEYWORD:
-            self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
-        elif token_type == IDENTIFIER: # varName|varName'['expression']'|subroutineCall
-            self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
+        next_token = self.tokenizer.peek_at_next_token()
+        if next_token.isdigit():
+            self._handle_int_const()
+        elif next_token.startswith('"') and next_token.endswith('"'):
+            self._handle_string_const()
+        elif next_token in KEYWORDS:
+            self._handle_keyword()
+        elif re.match(r'^\w+$', next_token):
+            self._handle_identifier(definedOrUsed=USED)
             next_token = self.tokenizer.peek_at_next_token()
             if next_token == '[': # varName'['expression']'
                 self._handle_symbol() # '['
@@ -292,16 +295,16 @@ class CompilationEngine(object):
                 self._handle_symbol() # ')'
             elif next_token == '.': # subroutineCall
                 self._handle_symbol() # '.'
-                self._handle_identifier() # subroutineName
+                self._handle_identifier(SUBROUTINE, USED) # subroutineName
                 self._handle_symbol() # '('
                 self.compile_expression_list() # expressionList
                 self._handle_symbol() # ')'
-        elif self.tokenizer.current_token == '(': # '('expression')'
-            self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol())) # '('
+        elif next_token == '(': # '('expression')'
+            self._handle_symbol() # '('
             self.compile_expression() # expression
             self._handle_symbol() # ')'
-        elif self.tokenizer.current_token in ['-', '~']: # unaryOp term
-            self.output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
+        elif next_token in ['-', '~']: # unaryOp term
+            self._handle_symbol()
             self.compile_term()
         else:
             raise Exception("Token '{}' not matched to any term".format(self.tokenizer.current_token))
@@ -311,17 +314,40 @@ class CompilationEngine(object):
     def _handle_type(self):
         """ type: 'int'|'char'|'boolean'|className"""
         if self.tokenizer.peek_at_next_token() in [INT, CHAR, BOOLEAN]:
-            self._handle_keyword()
+            return self._handle_keyword()
         else:
-            self._handle_identifier()
+            return self._handle_identifier(CLASS, USED)
 
     def _handle_keyword(self):
         self.tokenizer.advance()
         self.output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+        return self.tokenizer.keyword()
 
-    def _handle_identifier(self):
+    def _handle_identifier(self, category=None, definedOrUsed=None, type=None):
         self.tokenizer.advance()
-        self.output.append("<identifier> {} </identifier>".format(self.tokenizer.identifier()))
+        if category is None:
+            if self.symbol_table.is_in_symbol_table(self.tokenizer.identifier()):
+                category = self.symbol_table.kind_of(self.tokenizer.identifier())
+            elif self.symbol_table.is_type(self.tokenizer.identifier()):
+                # Symbol table stores Class names as type
+                category = CLASS
+            else:
+                category = SUBROUTINE
+
+        identifier = "{}, category: {}, definedOrUsed: {}".format(self.tokenizer.identifier(), category, definedOrUsed)
+
+        # TODO: Move "add to symbol table" logic into compile_* methods? Sort of unexpected
+        # to have it happen as side-effect of this method
+        if category in [VAR, ARGUMENT, STATIC, FIELD]:
+            index = None
+            if self.symbol_table.index_of(self.tokenizer.current_token) == None:
+                # Symbol not yet in table - add it
+                self.symbol_table.define(self.tokenizer.current_token, type, category)
+
+            index = self.symbol_table.index_of(self.tokenizer.current_token)
+            identifier += ", index: {}".format(index)
+        self.output.append("<identifier> {} </identifier>".format(identifier))
+        return self.tokenizer.identifier()
 
     def _handle_symbol(self):
         self.tokenizer.advance()

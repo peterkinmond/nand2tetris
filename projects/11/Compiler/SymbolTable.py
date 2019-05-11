@@ -72,3 +72,10 @@ class SymbolTable(object):
 
     def is_in_symbol_table(self, name):
         return name in self.symbol_table
+
+    def is_type(self, type):
+        for (key, value) in self.symbol_table.items():
+            if value['type'] == type:
+                return True
+
+        return False
