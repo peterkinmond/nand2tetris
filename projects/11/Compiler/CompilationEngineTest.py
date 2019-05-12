@@ -6,7 +6,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_class(self):
         engine = CompilationEngine("BasicTestClass.jack", "fakeOutputFile")
         engine.compile_class()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<class>',
                 '<keyword> class </keyword>',
                 '<identifier> BasicTestClass, category: class, definedOrUsed: defined </identifier>',
@@ -17,7 +17,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_class_var_dec(self):
         engine = CompilationEngine("field int direction;", "fakeOutputFile", True)
         engine.compile_class_var_dec()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<classVarDec>',
                 '<keyword> field </keyword>',
                 '<keyword> int </keyword>',
@@ -28,7 +28,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_class_var_dec_2(self):
         engine = CompilationEngine("static int directionA, directionB;", "fakeOutputFile", True)
         engine.compile_class_var_dec()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<classVarDec>',
                 '<keyword> static </keyword>',
                 '<keyword> int </keyword>',
@@ -42,7 +42,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_subroutine_dec(self):
         engine = CompilationEngine("method void decSize(int Ax, int Ay) { var boolean exit; }", "fakeOutputFile", True)
         engine.compile_subroutine_dec()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<subroutineDec>',
                 '<keyword> method </keyword>',
                 '<keyword> void </keyword>',
@@ -73,7 +73,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_var_dec(self):
         engine = CompilationEngine("var char key;", "fakeOutputFile", True)
         engine.compile_var_dec()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> char </keyword>',
@@ -84,7 +84,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_var_dec_2(self):
         engine = CompilationEngine("var char keyA, keyB;", "fakeOutputFile", True)
         engine.compile_var_dec()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> char </keyword>',
@@ -98,7 +98,7 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine('var char x; let x = "string constant";', "fakeOutputFile", True)
         engine.compile_var_dec()
         engine.compile_let()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> char </keyword>',
@@ -121,7 +121,7 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine("var int key; if (key = 81) { return; } else {}", "fakeOutputFile", True)
         engine.compile_var_dec()
         engine.compile_if()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> int </keyword>',
@@ -160,7 +160,7 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine("var int key; while (key = 0) {}", "fakeOutputFile", True)
         engine.compile_var_dec()
         engine.compile_while()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<varDec>',
                 '<keyword> var </keyword>',
                 '<keyword> int </keyword>',
@@ -189,7 +189,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_do(self):
         engine = CompilationEngine("do draw();", "fakeOutputFile", True)
         engine.compile_do()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<doStatement>',
                 '<keyword> do </keyword>',
                 '<identifier> draw, category: subroutine, definedOrUsed: used </identifier>',
@@ -204,7 +204,7 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine("field Square square; do square.dispose();", "fakeOutputFile", True)
         engine.compile_class_var_dec()
         engine.compile_do()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<classVarDec>',
                 '<keyword> field </keyword>',
                 '<identifier> Square, category: class, definedOrUsed: used </identifier>',
@@ -226,7 +226,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_return(self):
         engine = CompilationEngine("return;", "fakeOutputFile", True)
         engine.compile_return()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<returnStatement>',
                 '<keyword> return </keyword>',
                 '<symbol> ; </symbol>',
@@ -235,7 +235,7 @@ class CompilationEngineTest(unittest.TestCase):
     def test_compile_return_2(self):
         engine = CompilationEngine("return this;", "fakeOutputFile", True)
         engine.compile_return()
-        self.assertEqual(engine.output, [
+        self.assertEqual(engine.xml_output, [
             '<returnStatement>',
                 '<keyword> return </keyword>',
                 '<expression>',
@@ -250,23 +250,23 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine("../Square/Main.jack", "fakeOutputFile")
         engine.compile_class()
         xml_file = self.convert_xml_file("../Square/Main.xml")
-        self.assertEqual(len(engine.output), 244)
-        self.assertEqual(engine.output, xml_file)
+        self.assertEqual(len(engine.xml_output), 244)
+        self.assertEqual(engine.xml_output, xml_file)
 
 # TODO: Do we want to add extra identifier info to these (large) classes?
 #    def test_square_file(self):
 #        engine = CompilationEngine("../Square/Square.jack", "fakeOutputFile")
 #        engine.compile_class()
 #        xml_file = self.convert_xml_file("../Square/Square.xml")
-#        self.assertEqual(len(engine.output), 1211)
-#        self.assertEqual(engine.output, xml_file)
+#        self.assertEqual(len(engine.xml_output), 1211)
+#        self.assertEqual(engine.xml_output, xml_file)
 #
 #    def test_square_game_file(self):
 #        engine = CompilationEngine("../Square/SquareGame.jack", "fakeOutputFile")
 #        engine.compile_class()
 #        xml_file = self.convert_xml_file("../Square/SquareGame.xml")
-#        self.assertEqual(len(engine.output), 643)
-#        self.assertEqual(engine.output, xml_file)
+#        self.assertEqual(len(engine.xml_output), 643)
+#        self.assertEqual(engine.xml_output, xml_file)
 #
     def convert_xml_file(self, filepath):
         file_text = open(filepath, 'r').read()
