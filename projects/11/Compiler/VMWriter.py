@@ -1,5 +1,8 @@
 class VMWriter(object):
-    def __init__(self, output_file):
+    # TODO: Handle VM file writing here? Or just figuring
+    # out what the VM commands output would be?
+    #def __init__(self, output_file):
+    def __init__(self):
         """Creates a new output .vm file and prepares it for
         writing.
         """
@@ -7,15 +10,15 @@ class VMWriter(object):
 
     def write_push(self, segment, index):
         """Writes a VM push command."""
-        pass
+        return "push {} {}".format(segment, index)
 
     def write_pop(self, segment, index):
         """Writes a VM pop command."""
-        pass
+        return "pop {} {}".format(segment, index)
 
     def write_arithmetic(self, command):
         """Writes a VM arithmetic-logical command."""
-        pass
+        return command
 
     def write_label(self, label):
         """Writes a VM label command."""
@@ -31,15 +34,15 @@ class VMWriter(object):
 
     def write_call(self, name, num_args):
         """Writes a VM call commmand."""
-        pass
+        return "call {} {}".format(name, num_args)
 
     def write_function(self, name, num_locals):
         """Writes a VM function command."""
-        pass
+        return "function {} {}".format(name, num_locals)
 
     def write_return(self):
         """Writes a VM return command."""
-        pass
+        return "return"
 
     def close(self):
         """Closes the output file"""
