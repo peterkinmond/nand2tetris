@@ -18,7 +18,7 @@ class VMWriter(object):
 
     def write_arithmetic(self, command):
         """Writes a VM arithmetic-logical command."""
-        return command
+        return self._convert_op_to_vm_command(command)
 
     def write_label(self, label):
         """Writes a VM label command."""
@@ -48,4 +48,9 @@ class VMWriter(object):
         """Closes the output file"""
         pass
 
+    def _convert_op_to_vm_command(self, op):
+        if op == "+":
+            return "add"
+        elif op == "*":
+            return "call Math.multiply 2"
 
