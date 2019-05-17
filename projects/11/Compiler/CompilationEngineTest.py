@@ -246,6 +246,28 @@ class CompilationEngineTest(unittest.TestCase):
                 '<symbol> ; </symbol>',
             '</returnStatement>'])
 
+    def test_code_write(self):
+        engine = CompilationEngine(";", "fakeOutputFile", True)
+        engine.code_write([[2]])
+        self.assertEqual(engine.vm_output, [
+            'push constant 2'])
+
+    def test_code_write_2(self):
+        engine = CompilationEngine(";", "fakeOutputFile", True)
+        engine.code_write([[2], '+', [3]])
+        self.assertEqual(engine.vm_output, [
+            'push constant 2',
+            'push constant 3',
+            'add'])
+
+    def test_code_write_3(self):
+        engine = CompilationEngine(";", "fakeOutputFile", True)
+        engine.code_write([[8], '*', [9]])
+        self.assertEqual(engine.vm_output, [
+            'push constant 8',
+            'push constant 9',
+            'call Math.multiply 2'])
+
     def test_square_main_file(self):
         engine = CompilationEngine("../Square/Main.jack", "fakeOutputFile")
         engine.compile_class()

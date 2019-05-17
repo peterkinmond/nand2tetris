@@ -2,6 +2,7 @@ import re
 from Constants import *
 from JackTokenizer import JackTokenizer
 from SymbolTable import SymbolTable
+from VMWriter import VMWriter
 
 class CompilationEngine(object):
     """CompilationEngine: generates the compiler's output."""
@@ -12,16 +13,18 @@ class CompilationEngine(object):
 
         The next routine called must be compile_class
         """
+        self.class_name = ""
         self.tokenizer = JackTokenizer(input_file, use_text_as_input)
         self.output_file = output_file
         self.xml_output = []
+        self.vm_output = []
         self.symbol_table = SymbolTable()
+        self.vm_writer = VMWriter()
 
     def save_output_file(self):
         file = open(self.output_file, 'w')
-        # TODO: Output VM commands
-        #for line in self.xml_output:
-        #    file.write(line + '\n')
+        for line in self.vm_output:
+            file.write(line + '\n')
 
     def compile_class(self):
         """Compiles a complete class.
@@ -29,7 +32,7 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<class>') # output <class>
         self._handle_keyword() # 'class'
-        self._handle_identifier(CLASS, DEFINED) # className
+        self.class_name = self._handle_identifier(CLASS, DEFINED) # className
         self._handle_symbol() # '{'
 
         # classVarDec*
@@ -74,11 +77,13 @@ class CompilationEngine(object):
         else:
             self._handle_type() # type
 
-        self._handle_identifier(SUBROUTINE, DEFINED) # subroutineName
+        subroutine_name = self._handle_identifier(SUBROUTINE, DEFINED) # subroutineName
         self._handle_symbol() # '('
-        self.compile_parameter_list()
+        parameter_count = self.compile_parameter_list()
         self._handle_symbol() # ')'
+        self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, parameter_count))
         self.compile_subroutine_body()
+
         self.xml_output.append('</subroutineDec>')
 
     def compile_parameter_list(self):
@@ -87,6 +92,7 @@ class CompilationEngine(object):
         parameterList: ((type varName) (',' type varName)*)?
         """
         self.xml_output.append('<parameterList>')
+        count = 0
 
         # ((type varName) (',' type varName)*)?
         if self.tokenizer.peek_at_next_token() != ')':
@@ -98,6 +104,7 @@ class CompilationEngine(object):
                 self._handle_identifier(ARGUMENT, DEFINED, type) # varName
 
         self.xml_output.append('</parameterList>')
+        return count
 
     def compile_subroutine_body(self):
         """Compiles a subroutine's body.
@@ -218,25 +225,30 @@ class CompilationEngine(object):
         """subroutineCall: subroutineName'('expressionList')'|
             (className|varName)'.'subroutineName'('expressionList')'
         """
-        self._handle_identifier(definedOrUsed=USED) # subroutineName or (className|varName)
+        subroutine_name = self._handle_identifier(definedOrUsed=USED) # subroutineName or (className|varName)
         if self.tokenizer.peek_at_next_token() == '.':
-            self._handle_symbol() # '.'
-            self._handle_identifier(SUBROUTINE, USED) # subroutineName
+            subroutine_name += str(self._handle_symbol()) # '.'
+            subroutine_name += self._handle_identifier(SUBROUTINE, USED) # subroutineName
         self._handle_symbol() # '('
-        self.compile_expression_list() # expressionList
+        expression_count = self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
+        self.vm_output.append(self.vm_writer.write_call(subroutine_name, expression_count))
+        self.vm_output.append(self.vm_writer.write_pop("temp", 0))
 
     def compile_expression_list(self):
         """Compiles a (possibly empty) comma-separated list of expressions.
         expressionList: (expression (','expression)* )?
         """
         self.xml_output.append('<expressionList>') # output <expressionList>
+        count = 0
         if self.tokenizer.peek_at_next_token() != ')':
             self.compile_expression() # expression
+            count += 1
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
                 self.compile_expression() # type
         self.xml_output.append('</expressionList>') # output </expressionList>
+        return count
 
     def compile_return(self):
         """Compiles a return statement.
@@ -251,18 +263,63 @@ class CompilationEngine(object):
         self._handle_symbol() # ';'
         self.xml_output.append('</returnStatement>') # output </returnStatement>
 
+        # TODO: Handle case when there's a return value
+        self.vm_output.append(self.vm_writer.write_push("constant", 0))
+        self.vm_output.append(self.vm_writer.write_return())
+
     def compile_expression(self):
         """Compiles an expression.
         expression: term (op term)*
         """
         self.xml_output.append('<expression>') # output <expression>
-        self.compile_term()
+        expression = []
+        expression.append(self.compile_term())
 
         while (self.tokenizer.peek_at_next_token() in OPS):
-            self._handle_symbol() # op
-            self.compile_term() # term
+            expression.append(self._handle_symbol()) # op
+            expression.append(self.compile_term()) # term
 
         self.xml_output.append('</expression>') # output </expression>
+        self.code_write(expression)
+        return expression
+
+    def code_write(self, exp):
+        print(f"exp is {exp}")
+
+        if type(exp) is not list and str(exp).isdigit():
+            print('here 1')
+            self.vm_output.append(self.vm_writer.write_push("constant", exp))
+            return
+        elif type(exp) is list and len(exp) == 1:
+            # Terms are wrapped in a list so unpack them
+            self.code_write(exp[0])
+            return
+        # TODO: What's better way to handle expression list? I think
+        # they should be ignored since they'll be handled by a different
+        # call to code_write
+        elif exp[0] == "(":
+            print('here 2')
+            return
+        elif len(exp) == 3 and exp[1] in OPS: # if exp is "exp1 op exp2":
+            print('here 3')
+            self.code_write(exp[0])
+            self.code_write(exp[2])
+            self.vm_output.append(self.vm_writer.write_arithmetic(exp[1]))
+        # TODO: Add exception else clause once all expected conditions handled
+        #else:
+        #    raise Exception(f"Can't write code for expression {exp}")
+        # if exp is a variable var:
+        #   output "push var"
+
+        # if exp is "exp1 op exp2":
+        #   code_write(exp1),
+        #   code_write(exp2),
+        #   output "op"
+
+        # if exp is "f(exp1, exp2, ...)":
+        #   code_write(exp1),
+        #   code_write(exp2), ...,
+        #   output "call f"
 
     def compile_term(self):
         """Compiles a term. If the current token is an identifier,
@@ -276,41 +333,43 @@ class CompilationEngine(object):
             varName'['expression']'|subroutineCall|'('expression')'|unaryOp term
         """
         self.xml_output.append('<term>') # output <term>
+        term = []
         next_token = self.tokenizer.peek_at_next_token()
         if next_token.isdigit():
-            self._handle_int_const()
+            term.append(self._handle_int_const())
         elif next_token.startswith('"') and next_token.endswith('"'):
-            self._handle_string_const()
+            term.append(self._handle_string_const())
         elif next_token in KEYWORDS:
-            self._handle_keyword()
+            term.append(self._handle_keyword())
         elif re.match(r'^\w+$', next_token):
-            self._handle_identifier(definedOrUsed=USED)
+            term.append(self._handle_identifier(definedOrUsed=USED))
             next_token = self.tokenizer.peek_at_next_token()
             if next_token == '[': # varName'['expression']'
-                self._handle_symbol() # '['
-                self.compile_expression() # expression
-                self._handle_symbol() # ']'
+                term.append(self._handle_symbol()) # '['
+                term.append(self.compile_expression()) # expression
+                term.append(self._handle_symbol()) # ']'
             elif next_token == '(': # subroutineCall
-                self._handle_symbol() # '('
-                self.compile_expression_list() # expressionList
-                self._handle_symbol() # ')'
+                term.append(self._handle_symbol()) # '('
+                term.append(self.compile_expression_list()) # expressionList
+                term.append(self._handle_symbol()) # ')'
             elif next_token == '.': # subroutineCall
-                self._handle_symbol() # '.'
-                self._handle_identifier(SUBROUTINE, USED) # subroutineName
-                self._handle_symbol() # '('
-                self.compile_expression_list() # expressionList
-                self._handle_symbol() # ')'
+                term.append(self._handle_symbol()) # '.'
+                term.append(self._handle_identifier(SUBROUTINE, USED)) # subroutineName
+                term.append(self._handle_symbol()) # '('
+                term.append(self.compile_expression_list()) # expressionList
+                term.append(self._handle_symbol()) # ')'
         elif next_token == '(': # '('expression')'
-            self._handle_symbol() # '('
-            self.compile_expression() # expression
-            self._handle_symbol() # ')'
+            term.append(self._handle_symbol()) # '('
+            term.append(self.compile_expression()) # expression
+            term.append(self._handle_symbol()) # ')'
         elif next_token in ['-', '~']: # unaryOp term
-            self._handle_symbol()
-            self.compile_term()
+            term.append(self._handle_symbol())
+            term.append(self.compile_term())
         else:
             raise Exception("Token '{}' not matched to any term".format(self.tokenizer.current_token))
 
         self.xml_output.append('</term>') # output </term>
+        return term
 
     def _handle_type(self):
         """ type: 'int'|'char'|'boolean'|className"""
@@ -353,11 +412,15 @@ class CompilationEngine(object):
     def _handle_symbol(self):
         self.tokenizer.advance()
         self.xml_output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
+        return self.tokenizer.symbol()
 
     def _handle_int_const(self):
         self.tokenizer.advance()
         self.xml_output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
+        # self.vm_output.append(self.vm_writer.write_push("constant", self.tokenizer.int_val()))
+        return self.tokenizer.int_val()
 
     def _handle_string_const(self):
         self.tokenizer.advance()
         self.xml_output.append("<stringConstant> {} </stringConstant>".format(self.tokenizer.string_val()))
+        return self.tokenizer.string_val()
