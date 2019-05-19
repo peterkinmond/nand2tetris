@@ -6,11 +6,19 @@ neg
 call Main.fillMemory 3
 pop temp 0
 push constant 8000
+pop var 0
+call [['Memory', '.', 'peek', '(', 1, ')']] 99
 call Main.convert 1
 pop temp 0
 push constant 0
 return
 function Main.convert 0
+pop var 0
+call [['true']] 99
 push constant 1
 add
+pop var 0
+call [['position'], '+', [1]] 99
+pop var 0
+call [['Main', '.', 'nextMask', '(', 1, ')']] 99
 push constant 0

@@ -125,13 +125,13 @@ class CompilationEngine(object):
         varDec: 'var' type varName (',' varName)* ';'
         """
         self.xml_output.append('<varDec>') # output <varDec>
-        category = self._handle_keyword() # 'var'
+        self._handle_keyword() # 'var'
         type = self._handle_type() # type
-        self._handle_identifier(category, DEFINED, type) # varName
+        self._handle_identifier(LOCAL, DEFINED, type) # varName
 
         while (self.tokenizer.peek_at_next_token() == ','):
             self._handle_symbol() # ','
-            self._handle_identifier(category, DEFINED, type) # varName
+            self._handle_identifier(LOCAL, DEFINED, type) # varName
 
         self._handle_symbol() # ';'
         self.xml_output.append('</varDec>') # output <varDec>
@@ -163,7 +163,7 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<letStatement>') # output <letStatement>
         self._handle_keyword() # 'let'
-        self._handle_identifier(definedOrUsed=USED) # varName
+        value = self._handle_identifier(definedOrUsed=USED) # varName
 
         if self.tokenizer.peek_at_next_token() == '[':
             self._handle_symbol() # '['
@@ -171,9 +171,13 @@ class CompilationEngine(object):
             self._handle_symbol() # ']'
 
         self._handle_symbol() # '='
-        self.compile_expression() # expression
+        expression = self.compile_expression() # expression
         self._handle_symbol() # ';'
         self.xml_output.append('</letStatement>') # output </letStatement>
+
+        # Convert to code
+        #self.vm_output.append(self.vm_writer.write_call(expression, 99))
+        self.vm_output.append(self.vm_writer.write_pop(self.symbol_table.kind_of(value), 0))
 
     def compile_if(self):
         """Compiles a if statement.
@@ -217,9 +221,11 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<doStatement>') # output <doStatement>
         self._handle_keyword() # 'do'
-        self.compile_subroutine_call() # subroutineCall
+        result = self.compile_subroutine_call() # subroutineCall
         self._handle_symbol() # ';'
         self.xml_output.append('</doStatement>') # output </doStatement>
+        self.vm_output.append(self.vm_writer.write_call(result['subroutine_name'], result['expression_count']))
+        self.vm_output.append(self.vm_writer.write_pop("temp", 0))
 
     def compile_subroutine_call(self):
         """subroutineCall: subroutineName'('expressionList')'|
@@ -232,8 +238,10 @@ class CompilationEngine(object):
         self._handle_symbol() # '('
         expression_count = self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
-        self.vm_output.append(self.vm_writer.write_call(subroutine_name, expression_count))
-        self.vm_output.append(self.vm_writer.write_pop("temp", 0))
+        return {
+           'subroutine_name': subroutine_name,
+           'expression_count': expression_count
+           }
 
     def compile_expression_list(self):
         """Compiles a (possibly empty) comma-separated list of expressions.
@@ -403,7 +411,7 @@ class CompilationEngine(object):
 
         # TODO: Move "add to symbol table" logic into compile_* methods? Sort of unexpected
         # to have it happen as side-effect of this method
-        if category in [VAR, ARGUMENT, STATIC, FIELD]:
+        if category in [LOCAL, ARGUMENT, STATIC, FIELD]:
             index = None
             if self.symbol_table.index_of(self.tokenizer.current_token) == None:
                 # Symbol not yet in table - add it
