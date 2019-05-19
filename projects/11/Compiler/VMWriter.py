@@ -53,4 +53,7 @@ class VMWriter(object):
             return "add"
         elif op == "*":
             return "call Math.multiply 2"
+        # TODO: Distinguish between neg and sub for "-" symbol
+        elif op == "-":
+            return "neg"
 

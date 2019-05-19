@@ -247,6 +247,7 @@ class CompilationEngine(object):
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
                 self.compile_expression() # type
+                count += 1
         self.xml_output.append('</expressionList>') # output </expressionList>
         return count
 
@@ -305,6 +306,10 @@ class CompilationEngine(object):
             self.code_write(exp[0])
             self.code_write(exp[2])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[1]))
+        elif len(exp) == 2 and exp[0][0] in OPS: # if exp is "op exp"
+            print('here 4')
+            self.code_write(exp[1])
+            self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0]))
         # TODO: Add exception else clause once all expected conditions handled
         #else:
         #    raise Exception(f"Can't write code for expression {exp}")
@@ -417,7 +422,6 @@ class CompilationEngine(object):
     def _handle_int_const(self):
         self.tokenizer.advance()
         self.xml_output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
-        # self.vm_output.append(self.vm_writer.write_push("constant", self.tokenizer.int_val()))
         return self.tokenizer.int_val()
 
     def _handle_string_const(self):

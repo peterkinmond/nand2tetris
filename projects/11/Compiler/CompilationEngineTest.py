@@ -268,6 +268,13 @@ class CompilationEngineTest(unittest.TestCase):
             'push constant 9',
             'call Math.multiply 2'])
 
+    def test_code_write_4(self):
+        engine = CompilationEngine(";", "fakeOutputFile", True)
+        engine.code_write([['-'], [1]])
+        self.assertEqual(engine.vm_output, [
+            'push constant 1',
+            'neg'])
+
     def test_square_main_file(self):
         engine = CompilationEngine("../Square/Main.jack", "fakeOutputFile")
         engine.compile_class()
@@ -299,3 +306,34 @@ class CompilationEngineTest(unittest.TestCase):
                 continue
             result.append(line.strip())
         return result
+
+    def test_vm_file_seven(self):
+        engine = CompilationEngine("../Seven/Main.jack", "fakeOutputfile")
+        engine.compile_class()
+        self.assertEqual(engine.vm_output, [
+            'function Main.main 0',
+            'push constant 2',
+            'push constant 3',
+            'call Math.multiply 2',
+            'push constant 1',
+            'add',
+            'call Output.printInt 1',
+            'pop temp 0',
+            'push constant 0',
+            'return'])
+
+    def test_vm_file_convert_to_bin(self):
+        engine = CompilationEngine("../ConvertToBin/Main.jack", "fakeOutputfile")
+        engine.compile_class()
+        self.assertEqual(engine.vm_output, [
+            'function Main.main 0',
+            'push constant 8001',
+            'push constant 16',
+            'push constant 1',
+            'neg',
+            'call Main.fillMemory 3',
+            'pop temp 0',
+
+            'push constant 8000',
+            'call Memory.peek 1',
+            'foo bar'])
