@@ -326,7 +326,12 @@ class CompilationEngineTest(unittest.TestCase):
         engine = CompilationEngine("../ConvertToBin/Main.jack", "fakeOutputfile")
         engine.compile_class()
         self.assertEqual(engine.vm_output, [
+            # **********************************************
+            # function void main() {
+            # **********************************************
             'function Main.main 0',
+
+            # do Main.fillMemory(8001, 16, -1);
             'push constant 8001',
             'push constant 16',
             'push constant 1',
@@ -334,7 +339,48 @@ class CompilationEngineTest(unittest.TestCase):
             'call Main.fillMemory 3',
             'pop temp 0',
 
+            # let value = Memory.peek(8000);
             'push constant 8000',
             'call Memory.peek 1',
-            'pop var 0',
-            'foo bar'])
+            'pop local 0',
+
+            # do Main.convert(value);
+            'push local 0',
+            'call Main.convert 1',
+            'pop temp 0',
+
+            # return
+            'push constant 0',
+            'return',
+
+            # **********************************************
+            # function void convert(int value) {
+            # **********************************************
+            'function Main.convert 1',
+
+            # let loop = true;
+            'push constant 1',
+            'neg',
+            'pop local 2',
+
+            # while (loop) {
+        'label L1',
+            # compiled (expression)
+            'push local 2',
+            'not',
+            'if-goto L2',
+
+            # compiled (statements)
+    	    # let position = position + 1;
+            'push local 1',
+            'push constant 1',
+            'add',
+            'pop local 1',
+
+            'goto L1',
+        'label L2',
+
+            # return;
+            'push constant 0',
+            'return'
+            ])

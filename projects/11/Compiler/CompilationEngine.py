@@ -98,10 +98,12 @@ class CompilationEngine(object):
         if self.tokenizer.peek_at_next_token() != ')':
             type = self._handle_type() # type
             self._handle_identifier(ARGUMENT, DEFINED, type) # varName
+            count += 1
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
                 type = self._handle_type() # type
                 self._handle_identifier(ARGUMENT, DEFINED, type) # varName
+                count += 1
 
         self.xml_output.append('</parameterList>')
         return count
@@ -175,9 +177,10 @@ class CompilationEngine(object):
         self._handle_symbol() # ';'
         self.xml_output.append('</letStatement>') # output </letStatement>
 
-        # Convert to code
-        #self.vm_output.append(self.vm_writer.write_call(expression, 99))
-        self.vm_output.append(self.vm_writer.write_pop(self.symbol_table.kind_of(value), 0))
+        # "let" statements assign a value to a var so pop the value to the var
+        segment = self.symbol_table.kind_of(value)
+        index = self.symbol_table.index_of(value)
+        self.vm_output.append(self.vm_writer.write_pop(segment, index))
 
     def compile_if(self):
         """Compiles a if statement.
@@ -207,12 +210,23 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<whileStatement>') # output <whileStatement>
         self._handle_keyword() # 'while'
+
+        self.vm_output.append(self.vm_writer.write_label('L1'))
+
         self._handle_symbol() # '('
         self.compile_expression() # expression
         self._handle_symbol() # ')'
+
+        self.vm_output.append(self.vm_writer.write_arithmetic('not'))
+        self.vm_output.append(self.vm_writer.write_if('L2'))
+
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
+
+        self.vm_output.append(self.vm_writer.write_goto('L1'))
+        self.vm_output.append(self.vm_writer.write_label('L2'))
+
         self.xml_output.append('</whileStatement>') # output </whileStatement>
 
     def compile_do(self):
@@ -221,10 +235,12 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<doStatement>') # output <doStatement>
         self._handle_keyword() # 'do'
-        result = self.compile_subroutine_call() # subroutineCall
+        self.compile_subroutine_call() # subroutineCall
         self._handle_symbol() # ';'
         self.xml_output.append('</doStatement>') # output </doStatement>
-        self.vm_output.append(self.vm_writer.write_call(result['subroutine_name'], result['expression_count']))
+
+        # "do" statements have an implicit empty return value
+        # which we handle by calling "pop temp 0"
         self.vm_output.append(self.vm_writer.write_pop("temp", 0))
 
     def compile_subroutine_call(self):
@@ -238,10 +254,7 @@ class CompilationEngine(object):
         self._handle_symbol() # '('
         expression_count = self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
-        return {
-           'subroutine_name': subroutine_name,
-           'expression_count': expression_count
-           }
+        self.vm_output.append(self.vm_writer.write_call(subroutine_name, expression_count))
 
     def compile_expression_list(self):
         """Compiles a (possibly empty) comma-separated list of expressions.
@@ -298,17 +311,26 @@ class CompilationEngine(object):
         if type(exp) is not list and str(exp).isdigit():
             print('here 1')
             self.vm_output.append(self.vm_writer.write_push("constant", exp))
-            return
-        elif type(exp) is list and len(exp) == 1:
+        elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
+            print('here 1b')
+            segment = self.symbol_table.kind_of(exp)
+            index = self.symbol_table.index_of(exp)
+            self.vm_output.append(self.vm_writer.write_push(segment, index))
+        elif type(exp) is not list and exp in ['null', 'false', 'true']:
+            print('here 1c')
+            if exp in ['null', 'false']: # Represented by constant 0
+                self.vm_output.append(self.vm_writer.write_push("constant", 0))
+            else: # 'true' represented by constant -1
+                self.vm_output.append(self.vm_writer.write_push("constant", 1))
+                self.vm_output.append(self.vm_writer.write_arithmetic("-"))
+        elif len(exp) == 1 and type(exp) is list:
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
-            return
         # TODO: What's better way to handle expression list? I think
         # they should be ignored since they'll be handled by a different
         # call to code_write
         elif exp[0] == "(":
             print('here 2')
-            return
         elif len(exp) == 3 and exp[1] in OPS: # if exp is "exp1 op exp2":
             print('here 3')
             self.code_write(exp[0])
@@ -318,6 +340,13 @@ class CompilationEngine(object):
             print('here 4')
             self.code_write(exp[1])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0]))
+        elif len(exp) > 3 and exp[1] == ".": # if exp is "f(exp1, exp2, ...)":
+            print('here 5')
+            # TODO: Make this handle any number of function params
+            function_name = exp[0] + exp[1] + exp[2]
+            self.code_write(exp[3])
+            self.vm_output.append(self.vm_writer.write_call(function_name, len(exp) - 5))
+
         # TODO: Add exception else clause once all expected conditions handled
         #else:
         #    raise Exception(f"Can't write code for expression {exp}")
@@ -379,7 +408,7 @@ class CompilationEngine(object):
             term.append(self._handle_symbol())
             term.append(self.compile_term())
         else:
-            raise Exception("Token '{}' not matched to any term".format(self.tokenizer.current_token))
+            raise Exception(f"Token '{self.tokenizer.current_token}' not matched to any term")
 
         self.xml_output.append('</term>') # output </term>
         return term
@@ -393,7 +422,7 @@ class CompilationEngine(object):
 
     def _handle_keyword(self):
         self.tokenizer.advance()
-        self.xml_output.append("<keyword> {} </keyword>".format(self.tokenizer.keyword()))
+        self.xml_output.append(f"<keyword> {self.tokenizer.keyword()} </keyword>")
         return self.tokenizer.keyword()
 
     def _handle_identifier(self, category=None, definedOrUsed=None, type=None):
@@ -407,7 +436,7 @@ class CompilationEngine(object):
             else:
                 category = SUBROUTINE
 
-        identifier = "{}, category: {}, definedOrUsed: {}".format(self.tokenizer.identifier(), category, definedOrUsed)
+        identifier = f"{self.tokenizer.identifier()}, category: {category}, definedOrUsed: {definedOrUsed}"
 
         # TODO: Move "add to symbol table" logic into compile_* methods? Sort of unexpected
         # to have it happen as side-effect of this method
@@ -418,21 +447,21 @@ class CompilationEngine(object):
                 self.symbol_table.define(self.tokenizer.current_token, type, category)
 
             index = self.symbol_table.index_of(self.tokenizer.current_token)
-            identifier += ", index: {}".format(index)
-        self.xml_output.append("<identifier> {} </identifier>".format(identifier))
+            identifier += f", index: {index}"
+        self.xml_output.append(f"<identifier> {identifier} </identifier>")
         return self.tokenizer.identifier()
 
     def _handle_symbol(self):
         self.tokenizer.advance()
-        self.xml_output.append("<symbol> {} </symbol>".format(self.tokenizer.symbol()))
+        self.xml_output.append(f"<symbol> {self.tokenizer.symbol()} </symbol>")
         return self.tokenizer.symbol()
 
     def _handle_int_const(self):
         self.tokenizer.advance()
-        self.xml_output.append("<integerConstant> {} </integerConstant>".format(self.tokenizer.int_val()))
+        self.xml_output.append(f"<integerConstant> {self.tokenizer.int_val()} </integerConstant>")
         return self.tokenizer.int_val()
 
     def _handle_string_const(self):
         self.tokenizer.advance()
-        self.xml_output.append("<stringConstant> {} </stringConstant>".format(self.tokenizer.string_val()))
+        self.xml_output.append(f"<stringConstant> {self.tokenizer.string_val()} </stringConstant>")
         return self.tokenizer.string_val()

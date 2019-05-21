@@ -10,11 +10,11 @@ class VMWriter(object):
 
     def write_push(self, segment, index):
         """Writes a VM push command."""
-        return "push {} {}".format(segment, index)
+        return f"push {segment} {index}"
 
     def write_pop(self, segment, index):
         """Writes a VM pop command."""
-        return "pop {} {}".format(segment, index)
+        return f"pop {segment} {index}"
 
     def write_arithmetic(self, command):
         """Writes a VM arithmetic-logical command."""
@@ -22,23 +22,23 @@ class VMWriter(object):
 
     def write_label(self, label):
         """Writes a VM label command."""
-        pass
+        return f"label {label}"
 
     def write_goto(self, label):
         """Writes a VM goto command."""
-        pass
+        return f"goto {label}"
 
     def write_if(self, label):
         """Writes a VM if-goto command."""
-        pass
+        return f"if-goto {label}"
 
     def write_call(self, name, num_args):
         """Writes a VM call commmand."""
-        return "call {} {}".format(name, num_args)
+        return f"call {name} {num_args}"
 
     def write_function(self, name, num_locals):
         """Writes a VM function command."""
-        return "function {} {}".format(name, num_locals)
+        return f"function {name} {num_locals}"
 
     def write_return(self):
         """Writes a VM return command."""
@@ -56,4 +56,8 @@ class VMWriter(object):
         # TODO: Distinguish between neg and sub for "-" symbol
         elif op == "-":
             return "neg"
+        elif op == "~":
+            return "not"
+        else:
+            return op
 
