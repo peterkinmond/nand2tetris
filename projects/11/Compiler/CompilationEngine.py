@@ -20,6 +20,7 @@ class CompilationEngine(object):
         self.vm_output = []
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter()
+        self.label_counter = 0
 
     def save_output_file(self):
         file = open(self.output_file, 'w')
@@ -188,21 +189,40 @@ class CompilationEngine(object):
             ('else' '{' statements '}')?
         """
         self.xml_output.append('<ifStatement>') # output <ifStatement>
+
+        label_1 = self._get_next_label()
+        label_2 = self._get_next_label()
+
         self._handle_keyword() # 'if'
         self._handle_symbol() # '('
         self.compile_expression() # expression
         self._handle_symbol() # ')'
+
+        self.vm_output.append(self.vm_writer.write_arithmetic('not'))
+        self.vm_output.append(self.vm_writer.write_if(label_1))
+
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
+        self.vm_output.append(self.vm_writer.write_goto(label_2))
+        self.vm_output.append(self.vm_writer.write_label(label_1))
+
         if self.tokenizer.peek_at_next_token() == ELSE:
-            self._handle_keyword() # 'if'
+            self._handle_keyword() # 'else'
             self._handle_symbol() # '{'
             self.compile_statements() # statements
             self._handle_symbol() # '}'
 
+        self.vm_output.append(self.vm_writer.write_label(label_2))
+
         self.xml_output.append('</ifStatement>') # output </ifStatement>
+
+    def _get_next_label(self):
+        self.label_counter += 1
+        label_name = f"L{self.label_counter}"
+        return label_name
+
 
     def compile_while(self):
         """Compiles a while statement.
@@ -211,21 +231,23 @@ class CompilationEngine(object):
         self.xml_output.append('<whileStatement>') # output <whileStatement>
         self._handle_keyword() # 'while'
 
-        self.vm_output.append(self.vm_writer.write_label('L1'))
+        label_1 = self._get_next_label()
+        label_2 = self._get_next_label()
+        self.vm_output.append(self.vm_writer.write_label(label_1))
 
         self._handle_symbol() # '('
         self.compile_expression() # expression
         self._handle_symbol() # ')'
 
         self.vm_output.append(self.vm_writer.write_arithmetic('not'))
-        self.vm_output.append(self.vm_writer.write_if('L2'))
+        self.vm_output.append(self.vm_writer.write_if(label_2))
 
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
-        self.vm_output.append(self.vm_writer.write_goto('L1'))
-        self.vm_output.append(self.vm_writer.write_label('L2'))
+        self.vm_output.append(self.vm_writer.write_goto(label_1))
+        self.vm_output.append(self.vm_writer.write_label(label_2))
 
         self.xml_output.append('</whileStatement>') # output </whileStatement>
 
@@ -280,13 +302,17 @@ class CompilationEngine(object):
         self._handle_keyword() # 'return'
 
         if (self.tokenizer.peek_at_next_token() != ';'):
-            self.compile_expression()
+            # TODO: Can we get rid of nested array from expression return value?
+            # Accessing value with "[0][0]" is ugly
+            self.compile_expression()[0][0]
+        else:
+            # Every Jack function needs to return some value, so for "return"
+            # statements without an explicit value, we use constant 0 as a default
+            self.vm_output.append(self.vm_writer.write_push("constant", 0))
 
         self._handle_symbol() # ';'
         self.xml_output.append('</returnStatement>') # output </returnStatement>
 
-        # TODO: Handle case when there's a return value
-        self.vm_output.append(self.vm_writer.write_push("constant", 0))
         self.vm_output.append(self.vm_writer.write_return())
 
     def compile_expression(self):
@@ -306,7 +332,7 @@ class CompilationEngine(object):
         return expression
 
     def code_write(self, exp):
-        print(f"exp is {exp}")
+        #print(f"exp is {exp}")
 
         if type(exp) is not list and str(exp).isdigit():
             print('here 1')
@@ -322,7 +348,7 @@ class CompilationEngine(object):
                 self.vm_output.append(self.vm_writer.write_push("constant", 0))
             else: # 'true' represented by constant -1
                 self.vm_output.append(self.vm_writer.write_push("constant", 1))
-                self.vm_output.append(self.vm_writer.write_arithmetic("-"))
+                self.vm_output.append(self.vm_writer.write_arithmetic("-", unary = True))
         elif len(exp) == 1 and type(exp) is list:
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
@@ -339,7 +365,7 @@ class CompilationEngine(object):
         elif len(exp) == 2 and exp[0][0] in OPS: # if exp is "op exp"
             print('here 4')
             self.code_write(exp[1])
-            self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0]))
+            self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0], unary = True))
         elif len(exp) > 3 and exp[1] == ".": # if exp is "f(exp1, exp2, ...)":
             print('here 5')
             # TODO: Make this handle any number of function params

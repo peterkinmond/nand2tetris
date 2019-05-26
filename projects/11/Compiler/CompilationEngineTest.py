@@ -371,16 +371,94 @@ class CompilationEngineTest(unittest.TestCase):
             'if-goto L2',
 
             # compiled (statements)
-    	    # let position = position + 1;
+            # let position = position + 1;
             'push local 1',
             'push constant 1',
             'add',
             'pop local 1',
+
+    	    # let mask = Main.nextMask(mask);
+            'push local 0',
+            'call Main.nextMask 1',
+            'pop local 0',
 
             'goto L1',
         'label L2',
 
             # return;
             'push constant 0',
+            'return',
+
+            # **********************************************
+            # function int nextMask(int mask) {
+            # **********************************************
+            'function Main.nextMask 1',
+
+            # if (mask = 0) {
+            # compiled (expression)
+            'push argument 0',
+            'push constant 0',
+            'eq',
+
+            'not',
+            'if-goto L3',
+
+            # compiled (statements1)
+            # return 1;
+            'push constant 1',
+            'return',
+
+            'goto L4',
+        'label L3',
+
+            # compiled (statements2)
+            # return mask * 2;
+            'push argument 0',
+            'push constant 2',
+            'call Math.multiply 2',
+            'return',
+        'label L4',
+
+            # **********************************************
+            # function void fillMemory(int startAddress, int length, int value) {
+            # **********************************************
+            'function Main.fillMemory 3',
+
+            # while (length > 0) {
+        'label L5',
+            # compiled (expression)
+            'push argument 1',
+            'push constant 0',
+            'gt',
+
+            'not',
+            'if-goto L6',
+
+            # compiled (statements)
+            # do Memory.poke(startAddress, value);
+            'push argument 0',
+            'push argument 2',
+            'call Memory.poke 2',
+            'pop temp 0',
+
+            # let length = length - 1;
+            'push argument 1',
+            'push constant 1',
+            'sub',
+            'pop argument 1',
+
+            # let startAddress = startAddress + 1;
+            'push argument 0',
+            'push constant 1',
+            'add',
+            'pop argument 0',
+
+            'goto L5',
+        'label L6',
+
+            # return
+            'push constant 0',
             'return'
+
+
             ])

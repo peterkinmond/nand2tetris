@@ -16,9 +16,9 @@ class VMWriter(object):
         """Writes a VM pop command."""
         return f"pop {segment} {index}"
 
-    def write_arithmetic(self, command):
+    def write_arithmetic(self, command, unary=False):
         """Writes a VM arithmetic-logical command."""
-        return self._convert_op_to_vm_command(command)
+        return self._convert_op_to_vm_command(command, unary)
 
     def write_label(self, label):
         """Writes a VM label command."""
@@ -48,16 +48,22 @@ class VMWriter(object):
         """Closes the output file"""
         pass
 
-    def _convert_op_to_vm_command(self, op):
+    def _convert_op_to_vm_command(self, op, unary):
         if op == "+":
             return "add"
         elif op == "*":
             return "call Math.multiply 2"
         # TODO: Distinguish between neg and sub for "-" symbol
-        elif op == "-":
+        elif op == "-" and unary == True:
             return "neg"
+        elif op == "-" and unary == False:
+            return "sub"
         elif op == "~":
             return "not"
+        elif op == "=":
+            return "eq"
+        elif op == "&gt;":
+            return "gt"
         else:
             return op
 
