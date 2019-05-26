@@ -64,6 +64,8 @@ class VMWriter(object):
             return "eq"
         elif op == "&gt;":
             return "gt"
+        elif op == "&amp;":
+            return "and"
         else:
             return op
 

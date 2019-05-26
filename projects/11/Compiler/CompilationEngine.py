@@ -332,7 +332,7 @@ class CompilationEngine(object):
         return expression
 
     def code_write(self, exp):
-        #print(f"exp is {exp}")
+        print(f"exp is {exp}")
 
         if type(exp) is not list and str(exp).isdigit():
             print('here 1')
@@ -350,19 +350,20 @@ class CompilationEngine(object):
                 self.vm_output.append(self.vm_writer.write_push("constant", 1))
                 self.vm_output.append(self.vm_writer.write_arithmetic("-", unary = True))
         elif len(exp) == 1 and type(exp) is list:
+            print('here 1d')
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
-        # TODO: What's better way to handle expression list? I think
-        # they should be ignored since they'll be handled by a different
-        # call to code_write
         elif exp[0] == "(":
+            # TODO: What's better way to handle expression list? I think
+            # they should be ignored since they'll be handled by a different
+            # call to code_write
             print('here 2')
         elif len(exp) == 3 and exp[1] in OPS: # if exp is "exp1 op exp2":
             print('here 3')
             self.code_write(exp[0])
             self.code_write(exp[2])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[1]))
-        elif len(exp) == 2 and exp[0][0] in OPS: # if exp is "op exp"
+        elif len(exp) > 1 and exp[0][0] in OPS: # if exp is "op exp"
             print('here 4')
             self.code_write(exp[1])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0], unary = True))
@@ -372,22 +373,13 @@ class CompilationEngine(object):
             function_name = exp[0] + exp[1] + exp[2]
             self.code_write(exp[3])
             self.vm_output.append(self.vm_writer.write_call(function_name, len(exp) - 5))
+        else:
+            print("nothing")
+            print(len(exp))
 
         # TODO: Add exception else clause once all expected conditions handled
         #else:
         #    raise Exception(f"Can't write code for expression {exp}")
-        # if exp is a variable var:
-        #   output "push var"
-
-        # if exp is "exp1 op exp2":
-        #   code_write(exp1),
-        #   code_write(exp2),
-        #   output "op"
-
-        # if exp is "f(exp1, exp2, ...)":
-        #   code_write(exp1),
-        #   code_write(exp2), ...,
-        #   output "call f"
 
     def compile_term(self):
         """Compiles a term. If the current token is an identifier,
