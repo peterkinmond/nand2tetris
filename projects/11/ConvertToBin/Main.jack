@@ -43,7 +43,6 @@ class Main {
     	    let position = position + 1;
     	    let mask = Main.nextMask(mask);
     	
-      /**
     	    if (~(position > 16)) {
     	
     	        if (~((value & mask) = 0)) {
@@ -56,10 +55,8 @@ class Main {
     	    else {
     	        let loop = false;
     	    }
-      */
     	}
     	return;
-
     }
  
     /** Returns the next mask (the mask that should follow the given mask). */
@@ -68,7 +65,7 @@ class Main {
     	    return 1;
     	}
     	else {
-          return mask * 2;
+	    return mask * 2;
     	}
     }
     
