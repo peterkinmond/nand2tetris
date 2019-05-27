@@ -359,8 +359,8 @@ class CompilationEngineTest(unittest.TestCase):
             'function Main.convert 3',
 
             # let loop = true;
-            'push constant 1',
-            'neg',
+            'push constant 0',
+            'not',
             'pop local 2',
 
             # while (loop) {

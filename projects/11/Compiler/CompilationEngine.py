@@ -92,6 +92,9 @@ class CompilationEngine(object):
             self.vm_output.append(self.vm_writer.write_push(CONSTANT, field_count))
             self.vm_output.append(self.vm_writer.write_call('Memory.alloc', 1))
             self.vm_output.append(self.vm_writer.write_pop(POINTER, 0))
+        elif subroutine_type == METHOD:
+            self.vm_output.append(self.vm_writer.write_push(ARGUMENT, 0))
+            self.vm_output.append(self.vm_writer.write_pop(POINTER, 0))
 
         self.compile_subroutine_body_statements()
 
@@ -314,6 +317,12 @@ class CompilationEngine(object):
 
             subroutine_name += str(self._handle_symbol()) # '.'
             subroutine_name += self._handle_identifier(SUBROUTINE, USED) # subroutineName
+        else:
+            # Method is being called on object instance
+            subroutine_name = f"{self.class_name}.{subroutine_name}"
+            expression_count += 1 # Count the calling object as an expression that gets passed
+            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
+
         self._handle_symbol() # '('
         expression_count += self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
@@ -388,11 +397,11 @@ class CompilationEngine(object):
             if exp in ['null', 'false']: # Represented by constant 0
                 self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
             else: # 'true' represented by constant -1
-                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 1))
-                self.vm_output.append(self.vm_writer.write_arithmetic("-", unary = True))
+                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
+                self.vm_output.append(self.vm_writer.write_arithmetic("~", unary = True))
         elif type(exp) is not list and exp in ['this']:
-            # TODO: what should we do here?
             print('here 1d')
+            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
         elif type(exp) is not list and len(exp) > 0:
             print('here 1e - string constnat')
             # String constant in VM land
