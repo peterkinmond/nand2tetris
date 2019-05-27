@@ -74,7 +74,7 @@ class CompilationEngine(object):
             subroutineName '(' parameterList ')' subroutineBody
         """
         self.xml_output.append('<subroutineDec>')
-        self._handle_keyword() # ('constructor'|'function'|'method')
+        subroutine_type = self._handle_keyword() # ('constructor'|'function'|'method')
 
         if self.tokenizer.peek_at_next_token() == VOID:
             self._handle_keyword() # 'void'
@@ -87,6 +87,12 @@ class CompilationEngine(object):
         self._handle_symbol() # ')'
         var_count = self.compile_subroutine_body_vars()
         self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, var_count))
+        if subroutine_type == CONSTRUCTOR:
+            field_count = self.symbol_table.var_count(FIELD)
+            self.vm_output.append(self.vm_writer.write_push(CONSTANT, field_count))
+            self.vm_output.append(self.vm_writer.write_call('Memory.alloc', 1))
+            self.vm_output.append(self.vm_writer.write_pop(POINTER, 0))
+
         self.compile_subroutine_body_statements()
 
         self.xml_output.append('</subroutineDec>')
@@ -343,7 +349,7 @@ class CompilationEngine(object):
         else:
             # Every Jack function needs to return some value, so for "return"
             # statements without an explicit value, we use constant 0 as a default
-            self.vm_output.append(self.vm_writer.write_push("constant", 0))
+            self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
 
         self._handle_symbol() # ';'
         self.xml_output.append('</returnStatement>') # output </returnStatement>
@@ -371,7 +377,7 @@ class CompilationEngine(object):
 
         if type(exp) is not list and str(exp).isdigit():
             print('here 1')
-            self.vm_output.append(self.vm_writer.write_push("constant", exp))
+            self.vm_output.append(self.vm_writer.write_push(CONSTANT, exp))
         elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
             print('here 1b')
             segment = self.symbol_table.kind_of(exp)
@@ -380,9 +386,9 @@ class CompilationEngine(object):
         elif type(exp) is not list and exp in ['null', 'false', 'true']:
             print('here 1c')
             if exp in ['null', 'false']: # Represented by constant 0
-                self.vm_output.append(self.vm_writer.write_push("constant", 0))
+                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
             else: # 'true' represented by constant -1
-                self.vm_output.append(self.vm_writer.write_push("constant", 1))
+                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 1))
                 self.vm_output.append(self.vm_writer.write_arithmetic("-", unary = True))
         elif type(exp) is not list and exp in ['this']:
             # TODO: what should we do here?
@@ -390,10 +396,10 @@ class CompilationEngine(object):
         elif type(exp) is not list and len(exp) > 0:
             print('here 1e - string constnat')
             # String constant in VM land
-            self.vm_output.append(self.vm_writer.write_push('constant', len(exp)))
+            self.vm_output.append(self.vm_writer.write_push(CONSTANT, len(exp)))
             self.vm_output.append(self.vm_writer.write_call('String.new', 1))
             for letter in exp:
-                self.vm_output.append(self.vm_writer.write_push('constant', ord(letter)))
+                self.vm_output.append(self.vm_writer.write_push(CONSTANT, ord(letter)))
                 self.vm_output.append(self.vm_writer.write_call('String.appendChar', 2))
         elif len(exp) == 1 and type(exp) is list:
             print('here 1f')
