@@ -53,6 +53,8 @@ class VMWriter(object):
             return "add"
         elif op == "*":
             return "call Math.multiply 2"
+        elif op == "/":
+            return "call Math.divide 2"
         # TODO: Distinguish between neg and sub for "-" symbol
         elif op == "-" and unary == True:
             return "neg"
@@ -68,6 +70,7 @@ class VMWriter(object):
             return "lt"
         elif op == "&amp;":
             return "and"
+        elif op == "|":
+            return "or"
         else:
             return op
-
