@@ -293,12 +293,23 @@ class CompilationEngine(object):
         """subroutineCall: subroutineName'('expressionList')'|
             (className|varName)'.'subroutineName'('expressionList')'
         """
+        expression_count = 0
         subroutine_name = self._handle_identifier(definedOrUsed=USED) # subroutineName or (className|varName)
         if self.tokenizer.peek_at_next_token() == '.':
+            if self.symbol_table.is_in_symbol_table(subroutine_name):
+                # Method is being called on var
+                # Need to push var (object) representing that class prior to calling the method
+                segment = self.symbol_table.kind_of(subroutine_name)
+                index = self.symbol_table.index_of(subroutine_name)
+                self.vm_output.append(self.vm_writer.write_push(segment, index))
+                # Need to replace var name with the class name for VM command
+                subroutine_name = self.symbol_table.type_of(subroutine_name)
+                expression_count += 1 # Count the calling object as an expression that gets passed
+
             subroutine_name += str(self._handle_symbol()) # '.'
             subroutine_name += self._handle_identifier(SUBROUTINE, USED) # subroutineName
         self._handle_symbol() # '('
-        expression_count = self.compile_expression_list() # expressionList
+        expression_count += self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
         self.vm_output.append(self.vm_writer.write_call(subroutine_name, expression_count))
 
