@@ -20,7 +20,8 @@ class CompilationEngine(object):
         self.vm_output = []
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter()
-        self.label_counter = 0
+        self.if_loop_index = None
+        self.while_loop_index = None
 
     def save_output_file(self):
         file = open(self.output_file, 'w')
@@ -43,6 +44,8 @@ class CompilationEngine(object):
         # subroutineDec*
         while self.tokenizer.peek_at_next_token() in [CONSTRUCTOR, FUNCTION, METHOD]:
             self.symbol_table.start_subroutine()
+            self.if_loop_index = None
+            self.while_loop_index = None
             self.compile_subroutine_dec()
 
         self._handle_symbol() # '}'
@@ -192,6 +195,23 @@ class CompilationEngine(object):
         index = self.symbol_table.index_of(value)
         self.vm_output.append(self.vm_writer.write_pop(segment, index))
 
+    def _get_next_if_loop_index(self):
+        if self.if_loop_index == None:
+            self.if_loop_index = 0
+        else:
+            self.if_loop_index += 1
+
+        return self.if_loop_index
+
+    def _get_next_while_loop_index(self):
+        if self.while_loop_index == None:
+            self.while_loop_index = 0
+        else:
+            self.while_loop_index += 1
+
+        return self.while_loop_index
+
+
     def compile_if(self):
         """Compiles a if statement.
         ifStatement: 'if' '(' expression ')' '{' statements '}'
@@ -199,39 +219,35 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<ifStatement>') # output <ifStatement>
 
-        label_1 = self._get_next_label()
-        label_2 = self._get_next_label()
+        counter = self._get_next_if_loop_index()
 
         self._handle_keyword() # 'if'
         self._handle_symbol() # '('
         self.compile_expression() # expression
         self._handle_symbol() # ')'
 
-        self.vm_output.append(self.vm_writer.write_arithmetic('not'))
-        self.vm_output.append(self.vm_writer.write_if(label_1))
+        self.vm_output.append(self.vm_writer.write_if(f"IF_TRUE{counter}"))
+        self.vm_output.append(self.vm_writer.write_goto(f"IF_FALSE{counter}"))
+        self.vm_output.append(self.vm_writer.write_label(f"IF_TRUE{counter}"))
 
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
-        self.vm_output.append(self.vm_writer.write_goto(label_2))
-        self.vm_output.append(self.vm_writer.write_label(label_1))
-
         if self.tokenizer.peek_at_next_token() == ELSE:
+            self.vm_output.append(self.vm_writer.write_goto(f"IF_END{counter}"))
+            self.vm_output.append(self.vm_writer.write_label(f"IF_FALSE{counter}"))
+
             self._handle_keyword() # 'else'
             self._handle_symbol() # '{'
             self.compile_statements() # statements
             self._handle_symbol() # '}'
 
-        self.vm_output.append(self.vm_writer.write_label(label_2))
+            self.vm_output.append(self.vm_writer.write_label(f"IF_END{counter}"))
+        else:
+            self.vm_output.append(self.vm_writer.write_label(f"IF_FALSE{counter}"))
 
         self.xml_output.append('</ifStatement>') # output </ifStatement>
-
-    def _get_next_label(self):
-        self.label_counter += 1
-        label_name = f"L{self.label_counter}"
-        return label_name
-
 
     def compile_while(self):
         """Compiles a while statement.
@@ -240,23 +256,22 @@ class CompilationEngine(object):
         self.xml_output.append('<whileStatement>') # output <whileStatement>
         self._handle_keyword() # 'while'
 
-        label_1 = self._get_next_label()
-        label_2 = self._get_next_label()
-        self.vm_output.append(self.vm_writer.write_label(label_1))
+        counter = self._get_next_while_loop_index()
+        self.vm_output.append(self.vm_writer.write_label(f"WHILE_EXP{counter}"))
 
         self._handle_symbol() # '('
         self.compile_expression() # expression
         self._handle_symbol() # ')'
 
         self.vm_output.append(self.vm_writer.write_arithmetic('not'))
-        self.vm_output.append(self.vm_writer.write_if(label_2))
+        self.vm_output.append(self.vm_writer.write_if(f"WHILE_END{counter}"))
 
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
-        self.vm_output.append(self.vm_writer.write_goto(label_1))
-        self.vm_output.append(self.vm_writer.write_label(label_2))
+        self.vm_output.append(self.vm_writer.write_goto(f"WHILE_EXP{counter}"))
+        self.vm_output.append(self.vm_writer.write_label(f"WHILE_END{counter}"))
 
         self.xml_output.append('</whileStatement>') # output </whileStatement>
 

@@ -364,11 +364,11 @@ class CompilationEngineTest(unittest.TestCase):
             'pop local 2',
 
             # while (loop) {
-        'label L1',
+        'label WHILE_EXP0',
             # compiled (expression)
             'push local 2',
             'not',
-            'if-goto L2',
+            'if-goto WHILE_END0',
 
             # compiled (statements)
             # let position = position + 1;
@@ -388,8 +388,9 @@ class CompilationEngineTest(unittest.TestCase):
             'gt',
             'not',
 
-            'not',
-            'if-goto L3',
+            'if-goto IF_TRUE0',
+            'goto IF_FALSE0',
+        'label IF_TRUE0',
             # compiled (statements1)
 
             # if (~((value & mask) = 0)) {
@@ -400,8 +401,9 @@ class CompilationEngineTest(unittest.TestCase):
             'eq',
             'not',
 
-            'not',
-            'if-goto L5',
+            'if-goto IF_TRUE1',
+            'goto IF_FALSE1',
+        'label IF_TRUE1',
             # compiled (statements1)
             # do Memory.poke(8000 + position, 1);
             'push constant 8000',
@@ -411,8 +413,8 @@ class CompilationEngineTest(unittest.TestCase):
             'call Memory.poke 2',
             'pop temp 0',
 
-            'goto L6',
-        'label L5',
+            'goto IF_END1',
+        'label IF_FALSE1',
             # compiled (statements2)
             # do Memory.poke(8000 + position, 0);
             'push constant 8000',
@@ -422,22 +424,20 @@ class CompilationEngineTest(unittest.TestCase):
             'call Memory.poke 2',
             'pop temp 0',
 
-        'label L6',
+        'label IF_END1',
 
-            'goto L4',
-        'label L3',
+            'goto IF_END0',
+        'label IF_FALSE0',
 
             # compiled (statements2)
             # let loop = false;
             'push constant 0',
             'pop local 2',
 
-        'label L4',
+        'label IF_END0',
 
-
-
-            'goto L1',
-        'label L2',
+            'goto WHILE_EXP0',
+        'label WHILE_END0',
 
             # return;
             'push constant 0',
@@ -454,16 +454,17 @@ class CompilationEngineTest(unittest.TestCase):
             'push constant 0',
             'eq',
 
-            'not',
-            'if-goto L7',
+            'if-goto IF_TRUE0',
+            'goto IF_FALSE0',
+        'label IF_TRUE0',
 
             # compiled (statements1)
             # return 1;
             'push constant 1',
             'return',
 
-            'goto L8',
-        'label L7',
+            'goto IF_END0',
+        'label IF_FALSE0',
 
             # compiled (statements2)
             # return mask * 2;
@@ -471,7 +472,7 @@ class CompilationEngineTest(unittest.TestCase):
             'push constant 2',
             'call Math.multiply 2',
             'return',
-        'label L8',
+        'label IF_END0',
 
             # **********************************************
             # function void fillMemory(int startAddress, int length, int value) {
@@ -479,14 +480,14 @@ class CompilationEngineTest(unittest.TestCase):
             'function Main.fillMemory 0',
 
             # while (length > 0) {
-        'label L9',
+        'label WHILE_EXP0',
             # compiled (expression)
             'push argument 1',
             'push constant 0',
             'gt',
 
             'not',
-            'if-goto L10',
+            'if-goto WHILE_END0',
 
             # compiled (statements)
             # do Memory.poke(startAddress, value);
@@ -507,8 +508,8 @@ class CompilationEngineTest(unittest.TestCase):
             'add',
             'pop argument 0',
 
-            'goto L9',
-        'label L10',
+            'goto WHILE_EXP0',
+        'label WHILE_END0',
 
             # return
             'push constant 0',
