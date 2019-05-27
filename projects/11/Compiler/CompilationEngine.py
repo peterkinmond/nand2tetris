@@ -384,8 +384,19 @@ class CompilationEngine(object):
             else: # 'true' represented by constant -1
                 self.vm_output.append(self.vm_writer.write_push("constant", 1))
                 self.vm_output.append(self.vm_writer.write_arithmetic("-", unary = True))
-        elif len(exp) == 1 and type(exp) is list:
+        elif type(exp) is not list and exp in ['this']:
+            # TODO: what should we do here?
             print('here 1d')
+        elif type(exp) is not list and len(exp) > 0:
+            print('here 1e - string constnat')
+            # String constant in VM land
+            self.vm_output.append(self.vm_writer.write_push('constant', len(exp)))
+            self.vm_output.append(self.vm_writer.write_call('String.new', 1))
+            for letter in exp:
+                self.vm_output.append(self.vm_writer.write_push('constant', ord(letter)))
+                self.vm_output.append(self.vm_writer.write_call('String.appendChar', 2))
+        elif len(exp) == 1 and type(exp) is list:
+            print('here 1f')
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
         elif exp[0] == "(":
