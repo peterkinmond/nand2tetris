@@ -329,7 +329,7 @@ class CompilationEngineTest(unittest.TestCase):
             # **********************************************
             # function void main() {
             # **********************************************
-            'function Main.main 0',
+            'function Main.main 1',
 
             # do Main.fillMemory(8001, 16, -1);
             'push constant 8001',
@@ -356,7 +356,7 @@ class CompilationEngineTest(unittest.TestCase):
             # **********************************************
             # function void convert(int value) {
             # **********************************************
-            'function Main.convert 1',
+            'function Main.convert 3',
 
             # let loop = true;
             'push constant 1',
@@ -446,7 +446,7 @@ class CompilationEngineTest(unittest.TestCase):
             # **********************************************
             # function int nextMask(int mask) {
             # **********************************************
-            'function Main.nextMask 1',
+            'function Main.nextMask 0',
 
             # if (mask = 0) {
             # compiled (expression)
@@ -476,7 +476,7 @@ class CompilationEngineTest(unittest.TestCase):
             # **********************************************
             # function void fillMemory(int startAddress, int length, int value) {
             # **********************************************
-            'function Main.fillMemory 3',
+            'function Main.fillMemory 0',
 
             # while (length > 0) {
         'label L9',

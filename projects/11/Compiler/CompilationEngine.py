@@ -80,10 +80,11 @@ class CompilationEngine(object):
 
         subroutine_name = self._handle_identifier(SUBROUTINE, DEFINED) # subroutineName
         self._handle_symbol() # '('
-        parameter_count = self.compile_parameter_list()
+        self.compile_parameter_list()
         self._handle_symbol() # ')'
-        self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, parameter_count))
-        self.compile_subroutine_body()
+        var_count = self.compile_subroutine_body_vars()
+        self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, var_count))
+        self.compile_subroutine_body_statements()
 
         self.xml_output.append('</subroutineDec>')
 
@@ -109,16 +110,20 @@ class CompilationEngine(object):
         self.xml_output.append('</parameterList>')
         return count
 
-    def compile_subroutine_body(self):
+    def compile_subroutine_body_vars(self):
         """Compiles a subroutine's body.
         subroutineBody: '{' varDec* statements '}'
         """
         self.xml_output.append('<subroutineBody>')
+        var_count = 0
         self._handle_symbol() # '{'
 
         while self.tokenizer.peek_at_next_token() == VAR:
-            self.compile_var_dec()
+            var_count += self.compile_var_dec()
 
+        return var_count
+
+    def compile_subroutine_body_statements(self):
         self.compile_statements()
         self._handle_symbol() # '}'
         self.xml_output.append('</subroutineBody>')
@@ -128,16 +133,20 @@ class CompilationEngine(object):
         varDec: 'var' type varName (',' varName)* ';'
         """
         self.xml_output.append('<varDec>') # output <varDec>
+        count = 0
         self._handle_keyword() # 'var'
         type = self._handle_type() # type
         self._handle_identifier(LOCAL, DEFINED, type) # varName
+        count += 1
 
         while (self.tokenizer.peek_at_next_token() == ','):
             self._handle_symbol() # ','
             self._handle_identifier(LOCAL, DEFINED, type) # varName
+            count += 1
 
         self._handle_symbol() # ';'
         self.xml_output.append('</varDec>') # output <varDec>
+        return count
 
     def compile_statements(self):
         """Compiles a sequence of statements.
