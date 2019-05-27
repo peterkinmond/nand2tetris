@@ -395,8 +395,9 @@ class CompilationEngine(object):
             print('here 5')
             # TODO: Make this handle any number of function params
             function_name = exp[0] + exp[1] + exp[2]
-            self.code_write(exp[3])
-            self.vm_output.append(self.vm_writer.write_call(function_name, len(exp) - 5))
+            # Ignore any expressions in expression list since they'll get handled here separate from this call
+            num_args = exp[4] # This will store the summed number from expression list
+            self.vm_output.append(self.vm_writer.write_call(function_name, num_args))
         else:
             print("nothing")
             print(len(exp))
