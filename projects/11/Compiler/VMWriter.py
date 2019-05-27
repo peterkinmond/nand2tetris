@@ -1,3 +1,5 @@
+from Constants import *
+
 class VMWriter(object):
     # TODO: Handle VM file writing here? Or just figuring
     # out what the VM commands output would be?
@@ -10,10 +12,12 @@ class VMWriter(object):
 
     def write_push(self, segment, index):
         """Writes a VM push command."""
+        segment = self._convert_segment_to_vm_segment(segment)
         return f"push {segment} {index}"
 
     def write_pop(self, segment, index):
         """Writes a VM pop command."""
+        segment = self._convert_segment_to_vm_segment(segment)
         return f"pop {segment} {index}"
 
     def write_arithmetic(self, command, unary=False):
@@ -74,3 +78,9 @@ class VMWriter(object):
             return "or"
         else:
             return op
+
+    def _convert_segment_to_vm_segment(self, segment):
+        if segment == FIELD:
+            return THIS
+        else:
+            return segment

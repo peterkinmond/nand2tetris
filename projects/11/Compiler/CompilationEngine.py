@@ -188,7 +188,7 @@ class CompilationEngine(object):
         self.xml_output.append('</letStatement>') # output </letStatement>
 
         # "let" statements assign a value to a var so pop the value to the var
-        segment = self.symbol_table.kind_of_convert_to_vm(value)
+        segment = self.symbol_table.kind_of(value)
         index = self.symbol_table.index_of(value)
         self.vm_output.append(self.vm_writer.write_pop(segment, index))
 
@@ -348,7 +348,7 @@ class CompilationEngine(object):
             self.vm_output.append(self.vm_writer.write_push("constant", exp))
         elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
             print('here 1b')
-            segment = self.symbol_table.kind_of_convert_to_vm(exp)
+            segment = self.symbol_table.kind_of(exp)
             index = self.symbol_table.index_of(exp)
             self.vm_output.append(self.vm_writer.write_push(segment, index))
         elif type(exp) is not list and exp in ['null', 'false', 'true']:

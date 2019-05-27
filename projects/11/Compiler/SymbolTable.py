@@ -57,16 +57,6 @@ class SymbolTable(object):
         else:
             return self.symbol_table[name]['kind']
 
-    def kind_of_convert_to_vm(self, name):
-        """Returns the kind of the named identifier in the
-        current scope but with the VM command appropriate segment
-        name (this, local, etc) instead of the symbol table kind.
-        """
-        if self.kind_of(name) == FIELD:
-            return THIS
-        else:
-            return self.kind_of(name)
-
     def type_of(self, name):
         """Returns the type of the named identifier in the
         current scope.
