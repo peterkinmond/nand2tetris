@@ -188,21 +188,34 @@ class CompilationEngine(object):
         self.xml_output.append('<letStatement>') # output <letStatement>
         self._handle_keyword() # 'let'
         value = self._handle_identifier(definedOrUsed=USED) # varName
+        segment = self.symbol_table.kind_of(value)
+        index = self.symbol_table.index_of(value)
+        is_array = False
 
         if self.tokenizer.peek_at_next_token() == '[':
             self._handle_symbol() # '['
             self.compile_expression() # expression
             self._handle_symbol() # ']'
 
+            # Assigning to array index - get offset and add to base address
+            self.vm_output.append(self.vm_writer.write_push(segment, index))
+            self.vm_output.append(self.vm_writer.write_arithmetic('add'))
+            is_array = True
+
         self._handle_symbol() # '='
         expression = self.compile_expression() # expression
         self._handle_symbol() # ';'
         self.xml_output.append('</letStatement>') # output </letStatement>
 
-        # "let" statements assign a value to a var so pop the value to the var
-        segment = self.symbol_table.kind_of(value)
-        index = self.symbol_table.index_of(value)
-        self.vm_output.append(self.vm_writer.write_pop(segment, index))
+        if is_array:
+            # Array access has specific set of VM commands
+            self.vm_output.append(self.vm_writer.write_pop(TEMP, 0))
+            self.vm_output.append(self.vm_writer.write_pop(POINTER, 1))
+            self.vm_output.append(self.vm_writer.write_push(TEMP, 0))
+            self.vm_output.append(self.vm_writer.write_pop(THAT, 0))
+        else:
+            # "let" statements assign a value to a var so pop the value to the var
+            self.vm_output.append(self.vm_writer.write_pop(segment, index))
 
     def _get_next_if_loop_index(self):
         if self.if_loop_index == None:
@@ -310,7 +323,7 @@ class CompilationEngine(object):
                 # Need to push var (object) representing that class prior to calling the method
                 segment = self.symbol_table.kind_of(subroutine_name)
                 index = self.symbol_table.index_of(subroutine_name)
-                self.vm_output.append(self.vm_writer.write_push(segment, index))
+                self.vm_output.append(self.vm_writer.write_push(segment + "CSC", index))
                 # Need to replace var name with the class name for VM command
                 subroutine_name = self.symbol_table.type_of(subroutine_name)
                 expression_count += 1 # Count the calling object as an expression that gets passed
@@ -435,9 +448,17 @@ class CompilationEngine(object):
             # Ignore any expressions in expression list since they'll get handled here separate from this call
             num_args = exp[4] # This will store the summed number from expression list
             self.vm_output.append(self.vm_writer.write_call(function_name, num_args))
+        elif len(exp) > 3 and exp[1] == "[": # if exp is "a[b]"
+            print('here 6')
+            self.code_write(exp[2]) # index
+            self.code_write(exp[0]) # array
+            self.vm_output.append(self.vm_writer.write_arithmetic('add'))
+            self.vm_output.append(self.vm_writer.write_pop(POINTER, 1))
+            self.vm_output.append(self.vm_writer.write_push(THAT, 0))
         else:
             print("nothing")
             print(len(exp))
+            #raise Exception(f"Can't write code for expression {exp}")
 
         # TODO: Add exception else clause once all expected conditions handled
         #else:
