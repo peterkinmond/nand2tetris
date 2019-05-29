@@ -194,7 +194,8 @@ class CompilationEngine(object):
 
         if self.tokenizer.peek_at_next_token() == '[':
             self._handle_symbol() # '['
-            self.compile_expression() # expression
+            expression = self.compile_expression() # expression
+            self.code_write(expression)
             self._handle_symbol() # ']'
 
             # Assigning to array index - get offset and add to base address
@@ -204,6 +205,7 @@ class CompilationEngine(object):
 
         self._handle_symbol() # '='
         expression = self.compile_expression() # expression
+        self.code_write(expression)
         self._handle_symbol() # ';'
         self.xml_output.append('</letStatement>') # output </letStatement>
 
@@ -245,7 +247,8 @@ class CompilationEngine(object):
 
         self._handle_keyword() # 'if'
         self._handle_symbol() # '('
-        self.compile_expression() # expression
+        expression = self.compile_expression() # expression
+        self.code_write(expression)
         self._handle_symbol() # ')'
 
         self.vm_output.append(self.vm_writer.write_if(f"IF_TRUE{counter}"))
@@ -282,7 +285,8 @@ class CompilationEngine(object):
         self.vm_output.append(self.vm_writer.write_label(f"WHILE_EXP{counter}"))
 
         self._handle_symbol() # '('
-        self.compile_expression() # expression
+        expression = self.compile_expression() # expression
+        self.code_write(expression)
         self._handle_symbol() # ')'
 
         self.vm_output.append(self.vm_writer.write_arithmetic('not'))
@@ -323,7 +327,7 @@ class CompilationEngine(object):
                 # Need to push var (object) representing that class prior to calling the method
                 segment = self.symbol_table.kind_of(subroutine_name)
                 index = self.symbol_table.index_of(subroutine_name)
-                self.vm_output.append(self.vm_writer.write_push(segment + "CSC", index))
+                self.vm_output.append(self.vm_writer.write_push(segment, index))
                 # Need to replace var name with the class name for VM command
                 subroutine_name = self.symbol_table.type_of(subroutine_name)
                 expression_count += 1 # Count the calling object as an expression that gets passed
@@ -348,11 +352,13 @@ class CompilationEngine(object):
         self.xml_output.append('<expressionList>') # output <expressionList>
         count = 0
         if self.tokenizer.peek_at_next_token() != ')':
-            self.compile_expression() # expression
+            expression = self.compile_expression() # expression
+            self.code_write(expression)
             count += 1
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
-                self.compile_expression() # type
+                expression = self.compile_expression() # type
+                self.code_write(expression)
                 count += 1
         self.xml_output.append('</expressionList>') # output </expressionList>
         return count
@@ -365,9 +371,8 @@ class CompilationEngine(object):
         self._handle_keyword() # 'return'
 
         if (self.tokenizer.peek_at_next_token() != ';'):
-            # TODO: Can we get rid of nested array from expression return value?
-            # Accessing value with "[0][0]" is ugly
-            self.compile_expression()[0][0]
+            expression = self.compile_expression()
+            self.code_write(expression)
         else:
             # Every Jack function needs to return some value, so for "return"
             # statements without an explicit value, we use constant 0 as a default
@@ -391,7 +396,6 @@ class CompilationEngine(object):
             expression.append(self.compile_term()) # term
 
         self.xml_output.append('</expression>') # output </expression>
-        self.code_write(expression)
         return expression
 
     def code_write(self, exp):
@@ -428,9 +432,8 @@ class CompilationEngine(object):
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
         elif exp[0] == "(":
-            # TODO: What's better way to handle expression list? I think
-            # they should be ignored since they'll be handled by a different
-            # call to code_write
+            # Handle expression list by recursively calling the expression inside the parentheses
+            self.code_write(exp[1])
             print('here 2')
         elif len(exp) == 3 and exp[1] in OPS: # if exp is "exp1 op exp2":
             print('here 3')
