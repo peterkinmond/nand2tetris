@@ -82,9 +82,14 @@ class CompilationEngine(object):
             self._handle_type() # type
 
         subroutine_name = self._handle_identifier(SUBROUTINE, DEFINED) # subroutineName
+        if subroutine_type == METHOD:
+            # Add "this" to symbol table to represent object
+            self.symbol_table.define(THIS, self.class_name, ARGUMENT)
+
         self._handle_symbol() # '('
         self.compile_parameter_list()
         self._handle_symbol() # ')'
+
         var_count = self.compile_subroutine_body_vars()
         self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, var_count))
         if subroutine_type == CONSTRUCTOR:
@@ -404,11 +409,9 @@ class CompilationEngine(object):
         if type(exp) is not list and str(exp).isdigit():
             print('here 1')
             self.vm_output.append(self.vm_writer.write_push(CONSTANT, exp))
-        elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
-            print('here 1b')
-            segment = self.symbol_table.kind_of(exp)
-            index = self.symbol_table.index_of(exp)
-            self.vm_output.append(self.vm_writer.write_push(segment, index))
+        elif type(exp) is not list and exp in ['this']:
+            print('here 1d')
+            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
         elif type(exp) is not list and exp in ['null', 'false', 'true']:
             print('here 1c')
             if exp in ['null', 'false']: # Represented by constant 0
@@ -416,9 +419,11 @@ class CompilationEngine(object):
             else: # 'true' represented by constant -1
                 self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
                 self.vm_output.append(self.vm_writer.write_arithmetic("~", unary = True))
-        elif type(exp) is not list and exp in ['this']:
-            print('here 1d')
-            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
+        elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
+            print('here 1b')
+            segment = self.symbol_table.kind_of(exp)
+            index = self.symbol_table.index_of(exp)
+            self.vm_output.append(self.vm_writer.write_push(segment, index))
         elif type(exp) is not list and len(exp) > 0:
             print('here 1e - string constnat')
             # String constant in VM land
