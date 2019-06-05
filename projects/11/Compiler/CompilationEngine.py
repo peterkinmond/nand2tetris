@@ -324,8 +324,12 @@ class CompilationEngine(object):
         """subroutineCall: subroutineName'('expressionList')'|
             (className|varName)'.'subroutineName'('expressionList')'
         """
-        expression_count = 0
         subroutine_name = self._handle_identifier(definedOrUsed=USED) # subroutineName or (className|varName)
+        self._handle_subroutine(subroutine_name)
+
+    def _handle_subroutine(self, subroutine_name):
+        expression_count = 0
+
         if self.tokenizer.peek_at_next_token() == '.':
             if self.symbol_table.is_in_symbol_table(subroutine_name):
                 # Method is being called on var
@@ -493,22 +497,28 @@ class CompilationEngine(object):
         elif next_token in KEYWORDS:
             term.append(self._handle_keyword())
         elif re.match(r'^\w+$', next_token):
-            term.append(self._handle_identifier(definedOrUsed=USED))
+            current_token = self._handle_identifier(definedOrUsed=USED)
             next_token = self.tokenizer.peek_at_next_token()
             if next_token == '[': # varName'['expression']'
+                term.append(current_token)
                 term.append(self._handle_symbol()) # '['
                 term.append(self.compile_expression()) # expression
                 term.append(self._handle_symbol()) # ']'
             elif next_token == '(': # subroutineCall
+                # TODO: Replace with call to _handle_subroutine if possible
+                term.append(current_token)
                 term.append(self._handle_symbol()) # '('
                 term.append(self.compile_expression_list()) # expressionList
                 term.append(self._handle_symbol()) # ')'
             elif next_token == '.': # subroutineCall
-                term.append(self._handle_symbol()) # '.'
-                term.append(self._handle_identifier(SUBROUTINE, USED)) # subroutineName
-                term.append(self._handle_symbol()) # '('
-                term.append(self.compile_expression_list()) # expressionList
-                term.append(self._handle_symbol()) # ')'
+                # TODO: Is there a cleaner way to handle this? I'm passing in
+                # an empty list as result of this term so that code_write doesn't
+                # blow up.
+                term.append('[')
+                term.append(']')
+                self._handle_subroutine(current_token)
+            else:
+                term.append(current_token)
         elif next_token == '(': # '('expression')'
             term.append(self._handle_symbol()) # '('
             term.append(self.compile_expression()) # expression
