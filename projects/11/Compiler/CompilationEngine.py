@@ -408,28 +408,28 @@ class CompilationEngine(object):
         return expression
 
     def code_write(self, exp):
-        print(f"exp is {exp}")
+        print(f"Expression: {exp}")
 
         if type(exp) is not list and str(exp).isdigit():
-            print('here 1')
+            print('type - numeric constant')
             self.vm_output.append(self.vm_writer.write_push(CONSTANT, exp))
         elif type(exp) is not list and exp in ['this']:
-            print('here 1d')
+            print('type - "this" keyword')
             self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
         elif type(exp) is not list and exp in ['null', 'false', 'true']:
-            print('here 1c')
+            print('type - "null", "false", or "true"')
             if exp in ['null', 'false']: # Represented by constant 0
                 self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
             else: # 'true' represented by constant -1
                 self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
                 self.vm_output.append(self.vm_writer.write_arithmetic("~", unary = True))
         elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
-            print('here 1b')
+            print('type - symbol')
             segment = self.symbol_table.kind_of(exp)
             index = self.symbol_table.index_of(exp)
             self.vm_output.append(self.vm_writer.write_push(segment, index))
         elif type(exp) is not list and len(exp) > 0:
-            print('here 1e - string constnat')
+            print('type - string constnat')
             # String constant in VM land
             self.vm_output.append(self.vm_writer.write_push(CONSTANT, len(exp)))
             self.vm_output.append(self.vm_writer.write_call('String.new', 1))
@@ -437,31 +437,31 @@ class CompilationEngine(object):
                 self.vm_output.append(self.vm_writer.write_push(CONSTANT, ord(letter)))
                 self.vm_output.append(self.vm_writer.write_call('String.appendChar', 2))
         elif len(exp) == 1 and type(exp) is list:
-            print('here 1f')
+            print('type - list')
             # Terms are wrapped in a list so unpack them
             self.code_write(exp[0])
         elif exp[0] == "(":
+            print('type - expression')
             # Handle expression list by recursively calling the expression inside the parentheses
             self.code_write(exp[1])
-            print('here 2')
         elif len(exp) == 3 and exp[1] in OPS: # if exp is "exp1 op exp2":
-            print('here 3')
+            print('type - "exp1 op exp2"')
             self.code_write(exp[0])
             self.code_write(exp[2])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[1]))
         elif len(exp) > 1 and exp[0][0] in OPS: # if exp is "op exp"
-            print('here 4')
+            print('type - "op exp"')
             self.code_write(exp[1])
             self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0], unary = True))
         elif len(exp) > 3 and exp[1] == ".": # if exp is "f(exp1, exp2, ...)":
-            print('here 5')
+            print('type - "f(exp1, exp2, ...)"')
             # TODO: Make this handle any number of function params
             function_name = exp[0] + exp[1] + exp[2]
             # Ignore any expressions in expression list since they'll get handled here separate from this call
             num_args = exp[4] # This will store the summed number from expression list
             self.vm_output.append(self.vm_writer.write_call(function_name, num_args))
         elif len(exp) > 3 and exp[1] == "[": # if exp is "a[b]"
-            print('here 6')
+            print('type - "a[b]"')
             self.code_write(exp[2]) # index
             self.code_write(exp[0]) # array
             self.vm_output.append(self.vm_writer.write_arithmetic('add'))
@@ -470,11 +470,8 @@ class CompilationEngine(object):
         else:
             print("nothing")
             print(len(exp))
-            #raise Exception(f"Can't write code for expression {exp}")
-
         # TODO: Add exception else clause once all expected conditions handled
-        #else:
-        #    raise Exception(f"Can't write code for expression {exp}")
+            #raise Exception(f"Can't write code for expression {exp}")
 
     def compile_term(self):
         """Compiles a term. If the current token is an identifier,
