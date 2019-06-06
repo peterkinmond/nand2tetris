@@ -294,213 +294,64 @@ class CompilationEngineXmlFileTests(unittest.TestCase):
         return result
 
 class CompilationEngineVmFileTests(unittest.TestCase):
+    """ These tests compare the VM output from the official Jack compiler
+    (which was provided in the Nand2Tetris courseware) with the VM output
+    from my compiler. The VM output should match for all 7 test projects.
+    This gives a great safety net for refactoring the Compilation Engine.
+    """
     def test_vm_file_seven(self):
         engine = CompilationEngine("../Seven/Main.jack", "fakeOutputfile")
         engine.compile_class()
-        self.assertEqual(engine.vm_output, [
-            'function Main.main 0',
-            'push constant 1',
-            'push constant 2',
-            'push constant 3',
-            'call Math.multiply 2',
-            'add',
-            'call Output.printInt 1',
-            'pop temp 0',
-            'push constant 0',
-            'return'])
+        vm_file_commands = self.get_all_commands_from_vm_file("../Seven/Main.vm")
+        self.assertEqual(engine.vm_output, vm_file_commands)
 
     def test_vm_file_convert_to_bin(self):
         engine = CompilationEngine("../ConvertToBin/Main.jack", "fakeOutputfile")
         engine.compile_class()
-        self.assertEqual(engine.vm_output, [
-            # **********************************************
-            # function void main() {
-            # **********************************************
-            'function Main.main 1',
+        vm_file_commands = self.get_all_commands_from_vm_file("../ConvertToBin/Main.vm")
+        self.assertEqual(engine.vm_output, vm_file_commands)
 
-            # do Main.fillMemory(8001, 16, -1);
-            'push constant 8001',
-            'push constant 16',
-            'push constant 1',
-            'neg',
-            'call Main.fillMemory 3',
-            'pop temp 0',
+    def test_vm_file_square(self):
+        jack_files = [
+                "../Square/Main.jack",
+                "../Square/Square.jack",
+                "../Square/SquareGame.jack"
+        ]
 
-            # let value = Memory.peek(8000);
-            'push constant 8000',
-            'call Memory.peek 1',
-            'pop local 0',
+        for jack_file in jack_files:
+            vm_file = jack_file.replace(".jack", ".vm")
+            engine = CompilationEngine(jack_file, "fakeOutputfile")
+            engine.compile_class()
+            vm_file_commands = self.get_all_commands_from_vm_file(vm_file)
+            self.assertEqual(engine.vm_output, vm_file_commands)
 
-            # do Main.convert(value);
-            'push local 0',
-            'call Main.convert 1',
-            'pop temp 0',
+    def test_vm_file_average(self):
+        engine = CompilationEngine("../Average/Main.jack", "fakeOutputfile")
+        engine.compile_class()
+        vm_file_commands = self.get_all_commands_from_vm_file("../Average/Main.vm")
+        self.assertEqual(engine.vm_output, vm_file_commands)
 
-            # return
-            'push constant 0',
-            'return',
+    def test_vm_file_pong(self):
+        jack_files = [
+                "../Pong/Ball.jack",
+                "../Pong/Bat.jack",
+                "../Pong/Main.jack",
+                "../Pong/PongGame.jack"
+        ]
 
-            # **********************************************
-            # function void convert(int value) {
-            # **********************************************
-            'function Main.convert 3',
+        for jack_file in jack_files:
+            vm_file = jack_file.replace(".jack", ".vm")
+            engine = CompilationEngine(jack_file, "fakeOutputfile")
+            engine.compile_class()
+            vm_file_commands = self.get_all_commands_from_vm_file(vm_file)
+            self.assertEqual(engine.vm_output, vm_file_commands)
 
-            # let loop = true;
-            'push constant 0',
-            'not',
-            'pop local 2',
-
-            # while (loop) {
-        'label WHILE_EXP0',
-            # compiled (expression)
-            'push local 2',
-            'not',
-            'if-goto WHILE_END0',
-
-            # compiled (statements)
-            # let position = position + 1;
-            'push local 1',
-            'push constant 1',
-            'add',
-            'pop local 1',
-
-            # let mask = Main.nextMask(mask);
-            'push local 0',
-            'call Main.nextMask 1',
-            'pop local 0',
-
-            # if (~(position > 16)) {
-            'push local 1',
-            'push constant 16',
-            'gt',
-            'not',
-
-            'if-goto IF_TRUE0',
-            'goto IF_FALSE0',
-        'label IF_TRUE0',
-            # compiled (statements1)
-
-            # if (~((value & mask) = 0)) {
-            'push argument 0',
-            'push local 0',
-            'and',
-            'push constant 0',
-            'eq',
-            'not',
-
-            'if-goto IF_TRUE1',
-            'goto IF_FALSE1',
-        'label IF_TRUE1',
-            # compiled (statements1)
-            # do Memory.poke(8000 + position, 1);
-            'push constant 8000',
-            'push local 1',
-            'add',
-            'push constant 1',
-            'call Memory.poke 2',
-            'pop temp 0',
-
-            'goto IF_END1',
-        'label IF_FALSE1',
-            # compiled (statements2)
-            # do Memory.poke(8000 + position, 0);
-            'push constant 8000',
-            'push local 1',
-            'add',
-            'push constant 0',
-            'call Memory.poke 2',
-            'pop temp 0',
-
-        'label IF_END1',
-
-            'goto IF_END0',
-        'label IF_FALSE0',
-
-            # compiled (statements2)
-            # let loop = false;
-            'push constant 0',
-            'pop local 2',
-
-        'label IF_END0',
-
-            'goto WHILE_EXP0',
-        'label WHILE_END0',
-
-            # return;
-            'push constant 0',
-            'return',
-
-            # **********************************************
-            # function int nextMask(int mask) {
-            # **********************************************
-            'function Main.nextMask 0',
-
-            # if (mask = 0) {
-            # compiled (expression)
-            'push argument 0',
-            'push constant 0',
-            'eq',
-
-            'if-goto IF_TRUE0',
-            'goto IF_FALSE0',
-        'label IF_TRUE0',
-
-            # compiled (statements1)
-            # return 1;
-            'push constant 1',
-            'return',
-
-            'goto IF_END0',
-        'label IF_FALSE0',
-
-            # compiled (statements2)
-            # return mask * 2;
-            'push argument 0',
-            'push constant 2',
-            'call Math.multiply 2',
-            'return',
-        'label IF_END0',
-
-            # **********************************************
-            # function void fillMemory(int startAddress, int length, int value) {
-            # **********************************************
-            'function Main.fillMemory 0',
-
-            # while (length > 0) {
-        'label WHILE_EXP0',
-            # compiled (expression)
-            'push argument 1',
-            'push constant 0',
-            'gt',
-
-            'not',
-            'if-goto WHILE_END0',
-
-            # compiled (statements)
-            # do Memory.poke(startAddress, value);
-            'push argument 0',
-            'push argument 2',
-            'call Memory.poke 2',
-            'pop temp 0',
-
-            # let length = length - 1;
-            'push argument 1',
-            'push constant 1',
-            'sub',
-            'pop argument 1',
-
-            # let startAddress = startAddress + 1;
-            'push argument 0',
-            'push constant 1',
-            'add',
-            'pop argument 0',
-
-            'goto WHILE_EXP0',
-        'label WHILE_END0',
-
-            # return
-            'push constant 0',
-            'return'
-
-
-            ])
+    def get_all_commands_from_vm_file(self, filepath):
+        file_text = open(filepath, 'r').read()
+        file_text_in_array = file_text.split('\n')
+        result = []
+        for line in file_text_in_array:
+            if len(line) == 0:
+                continue
+            result.append(line.strip())
+        return result
