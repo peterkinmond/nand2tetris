@@ -282,21 +282,6 @@ class CompilationEngineTest(unittest.TestCase):
         self.assertEqual(len(engine.xml_output), 244)
         self.assertEqual(engine.xml_output, xml_file)
 
-# TODO: Do we want to add extra identifier info to these (large) classes?
-#    def test_square_file(self):
-#        engine = CompilationEngine("../Square/Square.jack", "fakeOutputFile")
-#        engine.compile_class()
-#        xml_file = self.convert_xml_file("../Square/Square.xml")
-#        self.assertEqual(len(engine.xml_output), 1211)
-#        self.assertEqual(engine.xml_output, xml_file)
-#
-#    def test_square_game_file(self):
-#        engine = CompilationEngine("../Square/SquareGame.jack", "fakeOutputFile")
-#        engine.compile_class()
-#        xml_file = self.convert_xml_file("../Square/SquareGame.xml")
-#        self.assertEqual(len(engine.xml_output), 643)
-#        self.assertEqual(engine.xml_output, xml_file)
-#
     def convert_xml_file(self, filepath):
         file_text = open(filepath, 'r').read()
         file_text_in_array = file_text.split('\n')
