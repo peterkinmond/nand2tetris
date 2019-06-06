@@ -2,7 +2,7 @@ import re
 import unittest
 from CompilationEngine import CompilationEngine
 
-class CompilationEngineTest(unittest.TestCase):
+class CompilationEngineUnitTests(unittest.TestCase):
     def test_compile_class(self):
         engine = CompilationEngine("BasicTestClass.jack", "fakeOutputFile")
         engine.compile_class()
@@ -275,7 +275,8 @@ class CompilationEngineTest(unittest.TestCase):
             'push constant 1',
             'neg'])
 
-    def test_square_main_file(self):
+class CompilationEngineXmlFileTests(unittest.TestCase):
+    def test_square_main_file_xml(self):
         engine = CompilationEngine("../Square/Main.jack", "fakeOutputFile")
         engine.compile_class()
         xml_file = self.convert_xml_file("../Square/Main.xml")
@@ -292,6 +293,7 @@ class CompilationEngineTest(unittest.TestCase):
             result.append(line.strip())
         return result
 
+class CompilationEngineVmFileTests(unittest.TestCase):
     def test_vm_file_seven(self):
         engine = CompilationEngine("../Seven/Main.jack", "fakeOutputfile")
         engine.compile_class()
