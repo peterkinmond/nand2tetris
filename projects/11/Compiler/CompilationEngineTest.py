@@ -346,6 +346,12 @@ class CompilationEngineVmFileTests(unittest.TestCase):
             vm_file_commands = self.get_all_commands_from_vm_file(vm_file)
             self.assertEqual(engine.vm_output, vm_file_commands)
 
+#    def test_vm_file_complex_arrays(self):
+#        engine = CompilationEngine("../ComplexArrays/Main.jack", "fakeOutputfile")
+#        engine.compile_class()
+#        vm_file_commands = self.get_all_commands_from_vm_file("../ComplexArrays/Main.vm")
+#        self.assertEqual(engine.vm_output, vm_file_commands)
+
     def get_all_commands_from_vm_file(self, filepath):
         file_text = open(filepath, 'r').read()
         file_text_in_array = file_text.split('\n')
