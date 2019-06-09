@@ -17,7 +17,6 @@ class CompilationEngine(object):
         self.tokenizer = JackTokenizer(input_file, use_text_as_input)
         self.output_file = output_file
         self.xml_output = []
-        self.vm_output = []
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter()
         self.if_loop_index = None
@@ -25,7 +24,7 @@ class CompilationEngine(object):
 
     def save_output_file(self):
         file = open(self.output_file, 'w')
-        for line in self.vm_output:
+        for line in self.vm_writer.output:
             file.write(line + '\n')
 
     def compile_class(self):
@@ -91,15 +90,15 @@ class CompilationEngine(object):
         self._handle_symbol() # ')'
 
         var_count = self.compile_subroutine_body_vars()
-        self.vm_output.append(self.vm_writer.write_function(self.class_name + "." + subroutine_name, var_count))
+        self.vm_writer.write_function(self.class_name + "." + subroutine_name, var_count)
         if subroutine_type == CONSTRUCTOR:
             field_count = self.symbol_table.var_count(FIELD)
-            self.vm_output.append(self.vm_writer.write_push(CONSTANT, field_count))
-            self.vm_output.append(self.vm_writer.write_call('Memory.alloc', 1))
-            self.vm_output.append(self.vm_writer.write_pop(POINTER, 0))
+            self.vm_writer.write_push(CONSTANT, field_count)
+            self.vm_writer.write_call('Memory.alloc', 1)
+            self.vm_writer.write_pop(POINTER, 0)
         elif subroutine_type == METHOD:
-            self.vm_output.append(self.vm_writer.write_push(ARGUMENT, 0))
-            self.vm_output.append(self.vm_writer.write_pop(POINTER, 0))
+            self.vm_writer.write_push(ARGUMENT, 0)
+            self.vm_writer.write_pop(POINTER, 0)
 
         self.compile_subroutine_body_statements()
 
@@ -204,8 +203,8 @@ class CompilationEngine(object):
             self._handle_symbol() # ']'
 
             # Assigning to array index - get offset and add to base address
-            self.vm_output.append(self.vm_writer.write_push(segment, index))
-            self.vm_output.append(self.vm_writer.write_arithmetic('add'))
+            self.vm_writer.write_push(segment, index)
+            self.vm_writer.write_arithmetic('add')
             is_array = True
 
         self._handle_symbol() # '='
@@ -216,13 +215,13 @@ class CompilationEngine(object):
 
         if is_array:
             # Array access has specific set of VM commands
-            self.vm_output.append(self.vm_writer.write_pop(TEMP, 0))
-            self.vm_output.append(self.vm_writer.write_pop(POINTER, 1))
-            self.vm_output.append(self.vm_writer.write_push(TEMP, 0))
-            self.vm_output.append(self.vm_writer.write_pop(THAT, 0))
+            self.vm_writer.write_pop(TEMP, 0)
+            self.vm_writer.write_pop(POINTER, 1)
+            self.vm_writer.write_push(TEMP, 0)
+            self.vm_writer.write_pop(THAT, 0)
         else:
             # "let" statements assign a value to a var so pop the value to the var
-            self.vm_output.append(self.vm_writer.write_pop(segment, index))
+            self.vm_writer.write_pop(segment, index)
 
     def _get_next_if_loop_index(self):
         if self.if_loop_index == None:
@@ -256,26 +255,26 @@ class CompilationEngine(object):
         self.code_write(expression)
         self._handle_symbol() # ')'
 
-        self.vm_output.append(self.vm_writer.write_if(f"IF_TRUE{counter}"))
-        self.vm_output.append(self.vm_writer.write_goto(f"IF_FALSE{counter}"))
-        self.vm_output.append(self.vm_writer.write_label(f"IF_TRUE{counter}"))
+        self.vm_writer.write_if(f"IF_TRUE{counter}")
+        self.vm_writer.write_goto(f"IF_FALSE{counter}")
+        self.vm_writer.write_label(f"IF_TRUE{counter}")
 
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
         if self.tokenizer.peek_at_next_token() == ELSE:
-            self.vm_output.append(self.vm_writer.write_goto(f"IF_END{counter}"))
-            self.vm_output.append(self.vm_writer.write_label(f"IF_FALSE{counter}"))
+            self.vm_writer.write_goto(f"IF_END{counter}")
+            self.vm_writer.write_label(f"IF_FALSE{counter}")
 
             self._handle_keyword() # 'else'
             self._handle_symbol() # '{'
             self.compile_statements() # statements
             self._handle_symbol() # '}'
 
-            self.vm_output.append(self.vm_writer.write_label(f"IF_END{counter}"))
+            self.vm_writer.write_label(f"IF_END{counter}")
         else:
-            self.vm_output.append(self.vm_writer.write_label(f"IF_FALSE{counter}"))
+            self.vm_writer.write_label(f"IF_FALSE{counter}")
 
         self.xml_output.append('</ifStatement>') # output </ifStatement>
 
@@ -287,22 +286,22 @@ class CompilationEngine(object):
         self._handle_keyword() # 'while'
 
         counter = self._get_next_while_loop_index()
-        self.vm_output.append(self.vm_writer.write_label(f"WHILE_EXP{counter}"))
+        self.vm_writer.write_label(f"WHILE_EXP{counter}")
 
         self._handle_symbol() # '('
         expression = self.compile_expression() # expression
         self.code_write(expression)
         self._handle_symbol() # ')'
 
-        self.vm_output.append(self.vm_writer.write_arithmetic('not'))
-        self.vm_output.append(self.vm_writer.write_if(f"WHILE_END{counter}"))
+        self.vm_writer.write_arithmetic('not')
+        self.vm_writer.write_if(f"WHILE_END{counter}")
 
         self._handle_symbol() # '{'
         self.compile_statements() # statements
         self._handle_symbol() # '}'
 
-        self.vm_output.append(self.vm_writer.write_goto(f"WHILE_EXP{counter}"))
-        self.vm_output.append(self.vm_writer.write_label(f"WHILE_END{counter}"))
+        self.vm_writer.write_goto(f"WHILE_EXP{counter}")
+        self.vm_writer.write_label(f"WHILE_END{counter}")
 
         self.xml_output.append('</whileStatement>') # output </whileStatement>
 
@@ -318,7 +317,7 @@ class CompilationEngine(object):
 
         # "do" statements have an implicit empty return value
         # which we handle by calling "pop temp 0"
-        self.vm_output.append(self.vm_writer.write_pop("temp", 0))
+        self.vm_writer.write_pop("temp", 0)
 
     def compile_subroutine_call(self):
         """subroutineCall: subroutineName'('expressionList')'|
@@ -336,7 +335,7 @@ class CompilationEngine(object):
                 # Need to push var (object) representing that class prior to calling the method
                 segment = self.symbol_table.kind_of(subroutine_name)
                 index = self.symbol_table.index_of(subroutine_name)
-                self.vm_output.append(self.vm_writer.write_push(segment, index))
+                self.vm_writer.write_push(segment, index)
                 # Need to replace var name with the class name for VM command
                 subroutine_name = self.symbol_table.type_of(subroutine_name)
                 expression_count += 1 # Count the calling object as an expression that gets passed
@@ -347,12 +346,12 @@ class CompilationEngine(object):
             # Method is being called on object instance
             subroutine_name = f"{self.class_name}.{subroutine_name}"
             expression_count += 1 # Count the calling object as an expression that gets passed
-            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
+            self.vm_writer.write_push(POINTER, 0)
 
         self._handle_symbol() # '('
         expression_count += self.compile_expression_list() # expressionList
         self._handle_symbol() # ')'
-        self.vm_output.append(self.vm_writer.write_call(subroutine_name, expression_count))
+        self.vm_writer.write_call(subroutine_name, expression_count)
 
     def compile_expression_list(self):
         """Compiles a (possibly empty) comma-separated list of expressions.
@@ -385,12 +384,12 @@ class CompilationEngine(object):
         else:
             # Every Jack function needs to return some value, so for "return"
             # statements without an explicit value, we use constant 0 as a default
-            self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
+            self.vm_writer.write_push(CONSTANT, 0)
 
         self._handle_symbol() # ';'
         self.xml_output.append('</returnStatement>') # output </returnStatement>
 
-        self.vm_output.append(self.vm_writer.write_return())
+        self.vm_writer.write_return()
 
     def compile_expression(self):
         """Compiles an expression.
@@ -412,30 +411,30 @@ class CompilationEngine(object):
 
         if type(exp) is not list and str(exp).isdigit():
             print('type - numeric constant')
-            self.vm_output.append(self.vm_writer.write_push(CONSTANT, exp))
+            self.vm_writer.write_push(CONSTANT, exp)
         elif type(exp) is not list and exp in ['this']:
             print('type - "this" keyword')
-            self.vm_output.append(self.vm_writer.write_push(POINTER, 0))
+            self.vm_writer.write_push(POINTER, 0)
         elif type(exp) is not list and exp in ['null', 'false', 'true']:
             print('type - "null", "false", or "true"')
             if exp in ['null', 'false']: # Represented by constant 0
-                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
+                self.vm_writer.write_push(CONSTANT, 0)
             else: # 'true' represented by constant -1
-                self.vm_output.append(self.vm_writer.write_push(CONSTANT, 0))
-                self.vm_output.append(self.vm_writer.write_arithmetic("~", unary = True))
+                self.vm_writer.write_push(CONSTANT, 0)
+                self.vm_writer.write_arithmetic("~", unary = True)
         elif type(exp) is not list and self.symbol_table.is_in_symbol_table(exp):
             print('type - symbol')
             segment = self.symbol_table.kind_of(exp)
             index = self.symbol_table.index_of(exp)
-            self.vm_output.append(self.vm_writer.write_push(segment, index))
+            self.vm_writer.write_push(segment, index)
         elif type(exp) is not list and len(exp) > 0:
             print('type - string constnat')
             # String constant in VM land
-            self.vm_output.append(self.vm_writer.write_push(CONSTANT, len(exp)))
-            self.vm_output.append(self.vm_writer.write_call('String.new', 1))
+            self.vm_writer.write_push(CONSTANT, len(exp))
+            self.vm_writer.write_call('String.new', 1)
             for letter in exp:
-                self.vm_output.append(self.vm_writer.write_push(CONSTANT, ord(letter)))
-                self.vm_output.append(self.vm_writer.write_call('String.appendChar', 2))
+                self.vm_writer.write_push(CONSTANT, ord(letter))
+                self.vm_writer.write_call('String.appendChar', 2)
         elif len(exp) == 1 and type(exp) is list:
             print('type - list')
             # Terms are wrapped in a list so unpack them
@@ -448,25 +447,25 @@ class CompilationEngine(object):
             print('type - "exp1 op exp2"')
             self.code_write(exp[0])
             self.code_write(exp[2])
-            self.vm_output.append(self.vm_writer.write_arithmetic(exp[1]))
+            self.vm_writer.write_arithmetic(exp[1])
         elif len(exp) > 1 and exp[0][0] in OPS: # if exp is "op exp"
             print('type - "op exp"')
             self.code_write(exp[1])
-            self.vm_output.append(self.vm_writer.write_arithmetic(exp[0][0], unary = True))
+            self.vm_writer.write_arithmetic(exp[0][0], unary = True)
         elif len(exp) > 3 and exp[1] == ".": # if exp is "f(exp1, exp2, ...)":
             print('type - "f(exp1, exp2, ...)"')
             # TODO: Make this handle any number of function params
             function_name = exp[0] + exp[1] + exp[2]
             # Ignore any expressions in expression list since they'll get handled here separate from this call
             num_args = exp[4] # This will store the summed number from expression list
-            self.vm_output.append(self.vm_writer.write_call(function_name, num_args))
+            self.vm_writer.write_call(function_name, num_args)
         elif len(exp) > 3 and exp[1] == "[": # if exp is "a[b]"
             print('type - "a[b]"')
             self.code_write(exp[2]) # index
             self.code_write(exp[0]) # array
-            self.vm_output.append(self.vm_writer.write_arithmetic('add'))
-            self.vm_output.append(self.vm_writer.write_pop(POINTER, 1))
-            self.vm_output.append(self.vm_writer.write_push(THAT, 0))
+            self.vm_writer.write_arithmetic('add')
+            self.vm_writer.write_pop(POINTER, 1)
+            self.vm_writer.write_push(THAT, 0)
         else:
             print("nothing")
             print(len(exp))

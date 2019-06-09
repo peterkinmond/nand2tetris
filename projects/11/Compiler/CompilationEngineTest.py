@@ -249,13 +249,13 @@ class CompilationEngineUnitTests(unittest.TestCase):
     def test_code_write(self):
         engine = CompilationEngine(";", "fakeOutputFile", True)
         engine.code_write([[2]])
-        self.assertEqual(engine.vm_output, [
+        self.assertEqual(engine.vm_writer.output, [
             'push constant 2'])
 
     def test_code_write_2(self):
         engine = CompilationEngine(";", "fakeOutputFile", True)
         engine.code_write([[2], '+', [3]])
-        self.assertEqual(engine.vm_output, [
+        self.assertEqual(engine.vm_writer.output, [
             'push constant 2',
             'push constant 3',
             'add'])
@@ -263,7 +263,7 @@ class CompilationEngineUnitTests(unittest.TestCase):
     def test_code_write_3(self):
         engine = CompilationEngine(";", "fakeOutputFile", True)
         engine.code_write([[8], '*', [9]])
-        self.assertEqual(engine.vm_output, [
+        self.assertEqual(engine.vm_writer.output, [
             'push constant 8',
             'push constant 9',
             'call Math.multiply 2'])
@@ -271,7 +271,7 @@ class CompilationEngineUnitTests(unittest.TestCase):
     def test_code_write_4(self):
         engine = CompilationEngine(";", "fakeOutputFile", True)
         engine.code_write([['-'], [1]])
-        self.assertEqual(engine.vm_output, [
+        self.assertEqual(engine.vm_writer.output, [
             'push constant 1',
             'neg'])
 
@@ -303,13 +303,13 @@ class CompilationEngineVmFileTests(unittest.TestCase):
         engine = CompilationEngine("../Seven/Main.jack", "fakeOutputfile")
         engine.compile_class()
         vm_file_commands = self.get_all_commands_from_vm_file("../Seven/Main.vm")
-        self.assertEqual(engine.vm_output, vm_file_commands)
+        self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
     def test_vm_file_convert_to_bin(self):
         engine = CompilationEngine("../ConvertToBin/Main.jack", "fakeOutputfile")
         engine.compile_class()
         vm_file_commands = self.get_all_commands_from_vm_file("../ConvertToBin/Main.vm")
-        self.assertEqual(engine.vm_output, vm_file_commands)
+        self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
     def test_vm_file_square(self):
         jack_files = [
@@ -323,13 +323,13 @@ class CompilationEngineVmFileTests(unittest.TestCase):
             engine = CompilationEngine(jack_file, "fakeOutputfile")
             engine.compile_class()
             vm_file_commands = self.get_all_commands_from_vm_file(vm_file)
-            self.assertEqual(engine.vm_output, vm_file_commands)
+            self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
     def test_vm_file_average(self):
         engine = CompilationEngine("../Average/Main.jack", "fakeOutputfile")
         engine.compile_class()
         vm_file_commands = self.get_all_commands_from_vm_file("../Average/Main.vm")
-        self.assertEqual(engine.vm_output, vm_file_commands)
+        self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
     def test_vm_file_pong(self):
         jack_files = [
@@ -344,13 +344,13 @@ class CompilationEngineVmFileTests(unittest.TestCase):
             engine = CompilationEngine(jack_file, "fakeOutputfile")
             engine.compile_class()
             vm_file_commands = self.get_all_commands_from_vm_file(vm_file)
-            self.assertEqual(engine.vm_output, vm_file_commands)
+            self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
 #    def test_vm_file_complex_arrays(self):
 #        engine = CompilationEngine("../ComplexArrays/Main.jack", "fakeOutputfile")
 #        engine.compile_class()
 #        vm_file_commands = self.get_all_commands_from_vm_file("../ComplexArrays/Main.vm")
-#        self.assertEqual(engine.vm_output, vm_file_commands)
+#        self.assertEqual(engine.vm_writer.output, vm_file_commands)
 
     def get_all_commands_from_vm_file(self, filepath):
         file_text = open(filepath, 'r').read()

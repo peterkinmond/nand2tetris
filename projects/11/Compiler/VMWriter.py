@@ -8,45 +8,45 @@ class VMWriter(object):
         """Creates a new output .vm file and prepares it for
         writing.
         """
-        pass
+        self.output = []
 
     def write_push(self, segment, index):
         """Writes a VM push command."""
         segment = self._convert_segment_to_vm_segment(segment)
-        return f"push {segment} {index}"
+        self.output.append(f"push {segment} {index}")
 
     def write_pop(self, segment, index):
         """Writes a VM pop command."""
         segment = self._convert_segment_to_vm_segment(segment)
-        return f"pop {segment} {index}"
+        self.output.append(f"pop {segment} {index}")
 
     def write_arithmetic(self, command, unary=False):
         """Writes a VM arithmetic-logical command."""
-        return self._convert_op_to_vm_command(command, unary)
+        self.output.append(self._convert_op_to_vm_command(command, unary))
 
     def write_label(self, label):
         """Writes a VM label command."""
-        return f"label {label}"
+        self.output.append(f"label {label}")
 
     def write_goto(self, label):
         """Writes a VM goto command."""
-        return f"goto {label}"
+        self.output.append(f"goto {label}")
 
     def write_if(self, label):
         """Writes a VM if-goto command."""
-        return f"if-goto {label}"
+        self.output.append(f"if-goto {label}")
 
     def write_call(self, name, num_args):
         """Writes a VM call commmand."""
-        return f"call {name} {num_args}"
+        self.output.append(f"call {name} {num_args}")
 
     def write_function(self, name, num_locals):
         """Writes a VM function command."""
-        return f"function {name} {num_locals}"
+        self.output.append(f"function {name} {num_locals}")
 
     def write_return(self):
         """Writes a VM return command."""
-        return "return"
+        self.output.append("return")
 
     def close(self):
         """Closes the output file"""
