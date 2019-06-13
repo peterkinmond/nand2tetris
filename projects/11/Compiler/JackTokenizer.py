@@ -90,13 +90,22 @@ class JackTokenizer:
             raise Exception("File has no more tokens - can't peek at next token")
         return self.tokens[self.token_index + 1]
 
+    def peek_at_next_next_token(self):
+        """Peek at the next token without advancing the token index.
+        This method is useful to help the CompilationEngine make decisions about
+        what elements to compile.
+        """
+        if (self.has_more_tokens() == False):
+            raise Exception("File has no more tokens - can't peek at next token")
+        return self.tokens[self.token_index + 2]
+
     def token_type(self):
         """Returns the type of the current token as a constant."""
         if self.current_token in KEYWORDS:
             return KEYWORD
         elif self.current_token in SYMBOLS:
             return SYMBOL
-        elif self.is_identifier():
+        elif self.is_identifier(self.current_token):
             return IDENTIFIER
         elif self.current_token.isdigit():
             return INT_CONST
@@ -105,15 +114,15 @@ class JackTokenizer:
         else:
             return "Error: token type not found for token '{}'".format(self.current_token)
 
-    def is_identifier(self):
-        if len(self.current_token) == 0:
+    def is_identifier(self, token):
+        if len(token) == 0:
             return False
 
-        if self.current_token[0].isdigit(): # Can't start with digit
+        if token[0].isdigit(): # Can't start with digit
             return False
 
         # Must contain only alphanumeric chars or underscores
-        return re.match(r'^\w+$', self.current_token)
+        return re.match(r'^\w+$', token)
 
     def keyword(self):
         """Returns the keyword which is the current token, as a constant.
