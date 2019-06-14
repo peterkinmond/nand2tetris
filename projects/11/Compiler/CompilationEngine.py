@@ -198,8 +198,7 @@ class CompilationEngine(object):
 
         if self.tokenizer.peek_at_next_token() == '[':
             self._handle_symbol() # '['
-            expression = self.compile_expression() # expression
-            self.code_write(expression)
+            self.compile_expression() # expression
             self._handle_symbol() # ']'
 
             # Assigning to array index - get offset and add to base address
@@ -208,8 +207,7 @@ class CompilationEngine(object):
             is_array = True
 
         self._handle_symbol() # '='
-        expression = self.compile_expression() # expression
-        self.code_write(expression)
+        self.compile_expression() # expression
         self._handle_symbol() # ';'
         self.xml_output.append('</letStatement>') # output </letStatement>
 
@@ -251,8 +249,7 @@ class CompilationEngine(object):
 
         self._handle_keyword() # 'if'
         self._handle_symbol() # '('
-        expression = self.compile_expression() # expression
-        self.code_write(expression)
+        self.compile_expression() # expression
         self._handle_symbol() # ')'
 
         self.vm_writer.write_if(f"IF_TRUE{counter}")
@@ -289,8 +286,7 @@ class CompilationEngine(object):
         self.vm_writer.write_label(f"WHILE_EXP{counter}")
 
         self._handle_symbol() # '('
-        expression = self.compile_expression() # expression
-        self.code_write(expression)
+        self.compile_expression() # expression
         self._handle_symbol() # ')'
 
         self.vm_writer.write_arithmetic('not')
@@ -359,14 +355,13 @@ class CompilationEngine(object):
         """
         self.xml_output.append('<expressionList>') # output <expressionList>
         count = 0
+
         if self.tokenizer.peek_at_next_token() != ')':
-            expression = self.compile_expression() # expression
-            self.code_write(expression)
+            self.compile_expression() # expression
             count += 1
             while self.tokenizer.peek_at_next_token() != ')':
                 self._handle_symbol() # ','
-                expression = self.compile_expression() # type
-                self.code_write(expression)
+                self.compile_expression() # type
                 count += 1
         self.xml_output.append('</expressionList>') # output </expressionList>
         return count
@@ -379,8 +374,7 @@ class CompilationEngine(object):
         self._handle_keyword() # 'return'
 
         if (self.tokenizer.peek_at_next_token() != ';'):
-            expression = self.compile_expression()
-            self.code_write(expression)
+            self.compile_expression()
         else:
             # Every Jack function needs to return some value, so for "return"
             # statements without an explicit value, we use constant 0 as a default
@@ -396,15 +390,19 @@ class CompilationEngine(object):
         expression: term (op term)*
         """
         self.xml_output.append('<expression>') # output <expression>
-        expression = []
-        expression.append(self.compile_term())
+
+        # Need to compile ops after the terms
+        ops = []
+        self.compile_term()
 
         while (self.tokenizer.peek_at_next_token() in OPS):
-            expression.append(self._handle_symbol()) # op
-            expression.append(self.compile_term()) # term
+            ops.append(self._handle_symbol()) # op
+            self.compile_term() # term
 
         self.xml_output.append('</expression>') # output </expression>
-        return expression
+
+        for op in ops:
+            self.vm_writer.write_arithmetic(op)
 
     def code_write(self, exp):
         print(f"Expression: {exp}")
@@ -484,49 +482,59 @@ class CompilationEngine(object):
             varName'['expression']'|subroutineCall|'('expression')'|unaryOp term
         """
         self.xml_output.append('<term>') # output <term>
-        term = []
+
         next_token = self.tokenizer.peek_at_next_token()
+
         if next_token.isdigit():
-            term.append(self._handle_int_const())
+            print(f"type - numeric constant: {next_token}")
+            self._handle_int_const()
         elif next_token.startswith('"') and next_token.endswith('"'):
-            term.append(self._handle_string_const())
+            print(f"type - string constnat: {next_token}")
+            self._handle_string_const()
         elif next_token in KEYWORDS:
-            term.append(self._handle_keyword())
-        elif re.match(r'^\w+$', next_token):
-            current_token = self._handle_identifier(definedOrUsed=USED)
-            next_token = self.tokenizer.peek_at_next_token()
-            if next_token == '[': # varName'['expression']'
-                term.append(current_token)
-                term.append(self._handle_symbol()) # '['
-                term.append(self.compile_expression()) # expression
-                term.append(self._handle_symbol()) # ']'
-            elif next_token == '(': # subroutineCall
-                # TODO: Replace with call to _handle_subroutine if possible
-                term.append(current_token)
-                term.append(self._handle_symbol()) # '('
-                term.append(self.compile_expression_list()) # expressionList
-                term.append(self._handle_symbol()) # ')'
-            elif next_token == '.': # subroutineCall
-                # TODO: Is there a cleaner way to handle this? I'm passing in
-                # an empty list as result of this term so that code_write doesn't
-                # blow up.
-                term.append('[')
-                term.append(']')
-                self._handle_subroutine(current_token)
+            self._handle_keyword()
+        elif self.tokenizer.is_identifier(next_token):
+            print(f"type - identifier: {next_token}")
+            next_next_token = self.tokenizer.peek_at_next_next_token()
+            if next_next_token == '.': # subroutineCall
+                print(f"type - identifier - subroutine: {next_token}")
+                self.compile_subroutine_call()
+            elif next_next_token == "[": # varname'['expression']'
+                print(f"type - array access 'a[b]': {next_token}")
+                array_var = self._handle_identifier(definedOrUsed=USED) # varname
+                self._handle_symbol() # '['
+                self.compile_expression() # expression
+                self._handle_symbol() # ']'
+
+                segment = self.symbol_table.kind_of(array_var)
+                index = self.symbol_table.index_of(array_var)
+                self.vm_writer.write_push(segment, index)
+
+                self.vm_writer.write_arithmetic('add')
+                self.vm_writer.write_pop(POINTER, 1)
+                self.vm_writer.write_push(THAT, 0)
+            elif self.symbol_table.is_in_symbol_table(next_token): # symbol
+                print(f"type - identifier - symbol: {next_token}")
+                segment = self.symbol_table.kind_of(next_token)
+                index = self.symbol_table.index_of(next_token)
+                self.vm_writer.write_push(segment, index)
+                self._handle_identifier(definedOrUsed=USED) # symbol
             else:
-                term.append(current_token)
+                raise Exception(f"identifier not matched: {next_token}")
         elif next_token == '(': # '('expression')'
-            term.append(self._handle_symbol()) # '('
-            term.append(self.compile_expression()) # expression
-            term.append(self._handle_symbol()) # ')'
+            print(f"type - new expression: {next_token}")
+            self._handle_symbol() # '('
+            self.compile_expression()
+            self._handle_symbol() # ')'
         elif next_token in ['-', '~']: # unaryOp term
-            term.append(self._handle_symbol())
-            term.append(self.compile_term())
+            print(f"type - unaryOp: {next_token}")
+            op = self._handle_symbol()
+            self.compile_term()
+            self.vm_writer.write_arithmetic(op, unary = True)
         else:
-            raise Exception(f"Token '{self.tokenizer.current_token}' not matched to any term")
+            raise Exception(f"Token not matched: {next_token}")
 
         self.xml_output.append('</term>') # output </term>
-        return term
 
     def _handle_type(self):
         """ type: 'int'|'char'|'boolean'|className"""
@@ -537,6 +545,15 @@ class CompilationEngine(object):
 
     def _handle_keyword(self):
         self.tokenizer.advance()
+
+        if self.tokenizer.keyword() == THIS:
+            self.vm_writer.write_push(POINTER, 0)
+        elif self.tokenizer.keyword() in ['null', 'false', 'true']:
+            # "null/false" represented by CONSTANT 0, "true" represented by NOT 0
+            self.vm_writer.write_push(CONSTANT, 0)
+            if self.tokenizer.keyword() == TRUE:
+                self.vm_writer.write_arithmetic("~", unary = True)
+
         self.xml_output.append(f"<keyword> {self.tokenizer.keyword()} </keyword>")
         return self.tokenizer.keyword()
 
@@ -573,10 +590,17 @@ class CompilationEngine(object):
 
     def _handle_int_const(self):
         self.tokenizer.advance()
+        self.vm_writer.write_push(CONSTANT, self.tokenizer.current_token)
         self.xml_output.append(f"<integerConstant> {self.tokenizer.int_val()} </integerConstant>")
-        return self.tokenizer.int_val()
 
     def _handle_string_const(self):
         self.tokenizer.advance()
+        string_const = self.tokenizer.string_val()
+        self.vm_writer.write_push(CONSTANT, len(string_const))
+        self.vm_writer.write_call('String.new', 1)
+
+        for letter in string_const:
+            self.vm_writer.write_push(CONSTANT, ord(letter))
+            self.vm_writer.write_call('String.appendChar', 2)
+
         self.xml_output.append(f"<stringConstant> {self.tokenizer.string_val()} </stringConstant>")
-        return self.tokenizer.string_val()
